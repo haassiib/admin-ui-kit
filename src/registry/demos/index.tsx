@@ -51,7 +51,6 @@ import Pagination from '@/components/table/Pagination';
 import PasteableGrid from '@/components/table/PasteableGrid';
 import SaveAllBar from '@/components/table/SaveAllBar';
 import SortableList from '@/components/table/SortableList';
-import SortableTh from '@/components/table/SortableTh';
 
 import ActivityFeed from '@/components/data/ActivityFeed';
 import Badge from '@/components/data/Badge';
@@ -462,20 +461,6 @@ export function PaginationDemo() {
       <Variant label="pill"><Pagination {...shared} variant="pill" /></Variant>
       <Variant label="floating"><Pagination {...shared} variant="floating" /></Variant>
     </div>
-  );
-}
-
-export function SortableThDemo() {
-  const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>({ key: 'name', dir: 'asc' });
-  return (
-    <DemoTable head={<>
-      <SortableTh columnKey="name" sort={sort} onSort={setSort} className="px-3">Name</SortableTh>
-      <SortableTh columnKey="spend" sort={sort} onSort={setSort} align="right" className="px-3">Spend</SortableTh>
-    </>}>
-      {PEOPLE.slice(0, 3).map((p) => (
-        <tr key={p.id}><td className="px-3">{p.name}</td><td className="px-3 text-right">${p.spend.toLocaleString()}</td></tr>
-      ))}
-    </DemoTable>
   );
 }
 

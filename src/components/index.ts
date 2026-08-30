@@ -70,7 +70,6 @@ export { default as PasteableGrid } from './table/PasteableGrid';
 export type { PasteableGridColumn, PasteableGridHandle } from './table/PasteableGrid';
 export { default as SaveAllBar } from './table/SaveAllBar';
 export { default as SortableList } from './table/SortableList';
-export { default as SortableTh } from './table/SortableTh';
 
 // data
 export { default as ActivityFeed } from './data/ActivityFeed';

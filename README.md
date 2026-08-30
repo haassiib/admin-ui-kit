@@ -1,6 +1,6 @@
 # Admin UI Kit
 
-56 React components for admin and dashboard interfaces, with a live gallery.
+55 React components for admin and dashboard interfaces, with a live gallery.
 **Next.js 16 · React 19 · Tailwind 4 · TypeScript · MIT.**
 
 Copy-in, not install: every component is a single self-contained file you paste
@@ -18,7 +18,7 @@ npm run dev            # gallery at http://localhost:3020
 
 | Route | |
 |---|---|
-| `/` | All 56 components on one page, with search and filters |
+| `/` | All 55 components on one page, with search and filters |
 | `/preview/<slug>` | One component's documentation page |
 
 (`/all` redirects to `/` — it was the listing's address before the overview page

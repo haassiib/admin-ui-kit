@@ -97,7 +97,6 @@ export const ENTRIES: Entry[] = [
   table('PasteableGrid', 'Spreadsheet-style grid: paste a block of cells, map columns by header alias, keyboard navigation, column summaries.'),
   table('EditableCell', 'Click-to-edit cell with dirty state, commit/cancel keys and a no-jump overlay input.'),
   table('Pagination', 'Numbered page links with ellipsis gaps, or a page-number input. Four props for the common layout, or composable parts when the layout is the point.'),
-  table('SortableTh', 'Header cell that cycles asc → desc → unsorted.'),
   table('SortableList', 'Drag-to-reorder list, generic over the item type, with an explicit grip.'),
   table('SaveAllBar', 'Sticky bar shown while rows are dirty: save all or discard all.'),
   table('AccountCell', 'Identity cell: a name with its group and category beneath.'),
@@ -131,7 +130,7 @@ export const BY_SLUG = new Map(ENTRIES.map((x) => [x.slug, x]));
 
 /**
  * Acronyms that must not be split or title-cased into nonsense.
- * `KpiTile` -> "KPI Tile", not "Kpi Tile"; `SortableTh` -> "Sortable TH".
+ * `KpiTile` -> "KPI Tile", not "Kpi Tile".
  */
 const ACRONYMS: Record<string, string> = { Kpi: 'KPI', Th: 'TH', Url: 'URL', Ui: 'UI' };
 

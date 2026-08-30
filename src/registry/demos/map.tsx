@@ -39,7 +39,6 @@ export const DEMOS: Record<string, React.ComponentType> = {
   'pasteable-grid': D.PasteableGridDemo,
   'editable-cell': D.EditableCellDemo,
   'pagination': D.PaginationDemo,
-  'sortable-th': D.SortableThDemo,
   'sortable-list': D.SortableListDemo,
   'save-all-bar': D.SaveAllBarDemo,
   'account-cell': D.AccountCellDemo,
