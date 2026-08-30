@@ -14,6 +14,8 @@
 
 import { useState } from 'react';
 import Splitter from '@/components/layout/Splitter';
+import AppShell, { type SidebarPosition } from '@/components/layout/AppShell';
+import NavMenu from '@/components/layout/NavMenu';
 import Button from '@/components/layout/Button';
 import Badge from '@/components/data/Badge';
 import Alert from '@/components/layout/Alert';
@@ -120,6 +122,82 @@ function SplitterResizeEvents() {
         onResize → {size}%
       </p>
     </>
+  );
+}
+
+/* ------------------------------------------------------------- AppShell --- */
+
+const SHELL_SECTIONS = [
+  { label: 'Workspace', items: [{ label: 'Overview', href: '/' }, { label: 'Members', href: '/members' }] },
+  { label: 'Settings', items: [{ label: 'Billing', href: '/billing' }, { label: 'Roles', href: '/roles' }] },
+];
+
+/**
+ * The shell is `h-screen`, so previewing it inside a page needs a frame that
+ * bounds it — otherwise it takes over the document it is being shown in.
+ */
+function ShellFrame({ position }: { position: SidebarPosition }) {
+  const horizontal = position === 'top' || position === 'bottom';
+  return (
+    <div className="h-[26rem] overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
+      <div className="h-full [&>div]:h-full">
+        <AppShell
+          sidebarPosition={position}
+          sidebarWidth="w-48"
+          brand={<span className="text-sm font-bold text-slate-900 dark:text-white">Acme</span>}
+          actions={<Badge tone="info">Pro</Badge>}
+          sidebar={
+            <NavMenu
+              sections={SHELL_SECTIONS}
+              activeHref="/members"
+              orientation={horizontal ? 'horizontal' : 'vertical'}
+              showSectionLabels={!horizontal}
+            />
+          }
+        >
+          <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Members</h2>
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+            Navigation is on the <strong>{position}</strong>.
+          </p>
+        </AppShell>
+      </div>
+    </div>
+  );
+}
+
+function AppShellLeft() { return <ShellFrame position="left" />; }
+function AppShellRight() { return <ShellFrame position="right" />; }
+function AppShellTop() { return <ShellFrame position="top" />; }
+function AppShellBottom() { return <ShellFrame position="bottom" />; }
+
+/* -------------------------------------------------------------- NavMenu --- */
+
+const MENU_SECTIONS = [
+  { label: 'Workspace', items: [{ label: 'Overview', href: '/' }, { label: 'Members', href: '/members', badge: '8' }, { label: 'Projects', href: '/projects' }] },
+  { label: 'Settings', items: [{ label: 'Billing', href: '/billing' }, { label: 'Roles', href: '/roles' }] },
+];
+
+function NavMenuVertical() {
+  return (
+    <div className="w-56 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+      <NavMenu sections={MENU_SECTIONS} activeHref="/members" />
+    </div>
+  );
+}
+
+function NavMenuHorizontal() {
+  return (
+    <div className="overflow-x-auto rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-700">
+      <NavMenu sections={MENU_SECTIONS} activeHref="/members" orientation="horizontal" />
+    </div>
+  );
+}
+
+function NavMenuFilterable() {
+  return (
+    <div className="w-56 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+      <NavMenu sections={MENU_SECTIONS} activeHref="/roles" filterable />
+    </div>
   );
 }
 
@@ -313,6 +391,8 @@ function DataTableEmpty() {
 
 /** slug -> example id -> component. Joined to `EXAMPLE_META` by id. */
 export const EXAMPLE_DEMOS: Record<string, Record<string, React.ComponentType>> = {
+  'app-shell': { 'left': AppShellLeft, 'right': AppShellRight, 'top': AppShellTop, 'bottom': AppShellBottom },
+  'nav-menu': { 'vertical': NavMenuVertical, 'horizontal': NavMenuHorizontal, 'filterable': NavMenuFilterable },
   'splitter': { 'basic': SplitterBasic, 'vertical': SplitterVertical, 'size': SplitterSize, 'min-max': SplitterMinMax, 'nested': SplitterNested, 'resize-events': SplitterResizeEvents },
   'button': { 'variants': ButtonVariants, 'sizes': ButtonSizes, 'loading': ButtonLoading },
   'badge': { 'tones': BadgeTones, 'dot': BadgeDot },

@@ -15,6 +15,17 @@
 export type ExampleMeta = { id: string; title: string; description?: string };
 
 export const EXAMPLE_META: Record<string, ExampleMeta[]> = {
+  'app-shell': [
+      { id: 'left', title: 'Left', description: 'The default. A vertical rail beside the content, collapsing to an off-canvas drawer below the lg breakpoint.' },
+      { id: 'right', title: 'Right', description: 'The same rail on the other edge — the border and the drawer both flip, and the header controls swap sides with them.' },
+      { id: 'top', title: 'Top', description: 'A horizontal bar that absorbs the header: brand, navigation and actions share one row rather than stacking two rows of chrome.' },
+      { id: 'bottom', title: 'Bottom', description: 'Navigation pinned to the foot of the window, with the header left where a header belongs. Common on touch layouts.' },
+  ],
+  'nav-menu': [
+      { id: 'vertical', title: 'Vertical', description: 'The default: text links under uppercase section headings, active item on a filled pill.' },
+      { id: 'horizontal', title: 'Horizontal', description: 'For a top or bottom bar. Headings become inline group labels, groups get dividers, and the active item is underlined — a pill in a one-row bar reads as a button rather than as position.' },
+      { id: 'filterable', title: 'Filterable', description: 'Adds a filter above the sections and drops any section left with no matches. Worth it past roughly twenty items.' },
+  ],
   'splitter': [
       { id: 'basic', title: 'Basic', description: 'Two panes with a draggable divider. Drag it, or focus it and use the arrow keys — hold Shift for a bigger step.' },
       { id: 'vertical', title: 'Vertical', description: 'Set `direction="vertical"` to split top and bottom instead of left and right.' },

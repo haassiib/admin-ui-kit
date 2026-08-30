@@ -37,9 +37,10 @@ size, Nested, and Resize events.
 
 ## Components
 
-**Layout & shell** (17) — AppShell · NavMenu · Sidebar · Topbar · Breadcrumbs ·
-Splitter · Tabs · Card · Button · Alert · Avatar · EmptyState · MenuIcon ·
-UserDropdown · ThemeSettings · ThemeScript · IdleLogout
+**Layout & shell** (17) — AppShell (nav left/right/top/bottom) · NavMenu
+(vertical/horizontal) · Sidebar · Topbar · Breadcrumbs · Splitter · Tabs · Card ·
+Button · Alert · Avatar · EmptyState · MenuIcon · UserDropdown · ThemeSettings ·
+ThemeScript · IdleLogout
 
 **Form & input** (12) — Field (+ Input, Textarea, Select) · Checkbox · ToggleSwitch ·
 MultiSelect · AutocompleteDropdown · TreeMultiSelectDropdown ·
