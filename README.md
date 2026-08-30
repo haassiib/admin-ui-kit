@@ -22,9 +22,18 @@ npm run dev            # gallery at http://localhost:3020
 | `/all` | All 55 on one page, with search and filters |
 | `/preview/<slug>` | One component, full width, with three tabs |
 
-Each component page has **Preview** (running, interactive), **Usage** (the demo's
-own source — a working snippet you can paste), and **Source** (the whole
-component file). Both code views have a copy button.
+Each component page is laid out like a docs site:
+
+- **Import** — the exact import line, with a copy button
+- **Examples** — one section per mode, each with a heading, a sentence on what it
+  shows, the live thing, and a *Show code* toggle over that example's own source
+- **Props** — name, type, default and description, **parsed from the component's
+  own types at build time**, so the table cannot drift from the code
+- **Source** — the whole file
+- **On this page** — a right-hand nav that tracks the section you are reading
+
+`Splitter`, for instance, has six examples: Basic, Vertical, Size, Min and max
+size, Nested, and Resize events.
 
 ## Components
 

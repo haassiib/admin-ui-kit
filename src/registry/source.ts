@@ -33,24 +33,43 @@ export async function readComponentSource(relPath: string): Promise<string | nul
  * a few more lines and cannot be fooled by formatting.
  */
 export async function readDemoSource(componentName: string): Promise<string | null> {
-  const file = await readComponentSource('src/registry/demos/index.tsx');
-  if (!file) return null;
+  return extractFunction('src/registry/demos/index.tsx', `${componentName}Demo`);
+}
 
-  const marker = `export function ${componentName}Demo(`;
-  const start = file.indexOf(marker);
+/**
+ * Source for one named example, which may live in either module: the multi-
+ * example components declare theirs in `example-demos.tsx`, and everything else falls
+ * back to its single demo in `demos/index.tsx`.
+ */
+export async function readExampleSource(
+  fnName: string,
+  componentName: string,
+): Promise<string | null> {
+  return (
+    (await extractFunction('src/registry/example-demos.tsx', fnName)) ??
+    (await extractFunction('src/registry/demos/index.tsx', `${componentName}Demo`))
+  );
+}
+
+async function extractFunction(file: string, name: string): Promise<string | null> {
+  const src = await readComponentSource(file);
+  if (!src) return null;
+
+  const marker = `function ${name}(`;
+  const start = src.indexOf(marker);
   if (start === -1) return null;
 
   let depth = 0;
   let seen = false;
-  for (let i = start; i < file.length; i++) {
-    const ch = file[i];
+  for (let i = start; i < src.length; i++) {
+    const ch = src[i];
     if (ch === '{') {
       depth++;
       seen = true;
     } else if (ch === '}') {
       depth--;
-      if (seen && depth === 0) return file.slice(start, i + 1);
+      if (seen && depth === 0) return src.slice(start, i + 1);
     }
   }
-  return file.slice(start);
+  return src.slice(start);
 }

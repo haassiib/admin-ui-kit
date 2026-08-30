@@ -12,9 +12,10 @@ import puppeteer from 'puppeteer-core';
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const BASE = 'http://localhost:3020';
 
-// The demo body is inside the Preview TAB PANEL. Scoping to `div.p-4` would
-// find the Preview/Usage/Source tab buttons first and click one of those.
-const BODY = 'main [role="tabpanel"]';
+// The first live example on the docs page. `data-demo` is a stable hook on
+// DocSection — scoping by styling class breaks whenever the frame is restyled,
+// and scoping to the whole page finds the Show-code buttons first.
+const BODY = 'main [data-demo]';
 
 const CASES = [
   ['multi-select', 'click'],
