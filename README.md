@@ -1,6 +1,6 @@
 # Admin UI Kit
 
-55 React components for admin and dashboard interfaces, with a live gallery.
+57 React components for admin and dashboard interfaces, with a live gallery.
 **Next.js 16 · React 19 · Tailwind 4 · TypeScript · MIT.**
 
 Copy-in, not install: every component is a single self-contained file you paste
@@ -19,7 +19,7 @@ npm run dev            # gallery at http://localhost:3020
 | Route | |
 |---|---|
 | `/` | Overview — every component grouped by category |
-| `/all` | All 55 on one page, with search and filters |
+| `/all` | All 57 on one page, with search and filters |
 | `/preview/<slug>` | One component's documentation page |
 
 Each component page is laid out like a docs site:
@@ -37,9 +37,9 @@ size, Nested, and Resize events.
 
 ## Components
 
-**Layout & shell** (15) — Sidebar · Topbar · Breadcrumbs · Splitter · Tabs · Card ·
-Button · Alert · Avatar · EmptyState · MenuIcon · UserDropdown · ThemeSettings ·
-ThemeScript · IdleLogout
+**Layout & shell** (17) — AppShell · NavMenu · Sidebar · Topbar · Breadcrumbs ·
+Splitter · Tabs · Card · Button · Alert · Avatar · EmptyState · MenuIcon ·
+UserDropdown · ThemeSettings · ThemeScript · IdleLogout
 
 **Form & input** (12) — Field (+ Input, Textarea, Select) · Checkbox · ToggleSwitch ·
 MultiSelect · AutocompleteDropdown · TreeMultiSelectDropdown ·
@@ -103,10 +103,13 @@ measures how much of each popover survives its clipping ancestors. This class of
 bug is invisible to `tsc` and to `next build` — both stay green while the
 popovers are broken.
 
-**Fill by growing, not by nesting a scroller.** For the same reason, the gallery
-shell keeps `<main>` as its single scroll container and fills space with
+**Fill by growing, not by nesting a scroller.** For the same reason, `AppShell`
+keeps `<main>` as its single scroll container and fills space with
 `flex-1 min-h-full`. Giving a page or panel its own `overflow-auto` to make it
 "fit" clips the same components.
+
+The gallery you are running is itself built from `AppShell` and `NavMenu` — the
+shell the docs live in is the shell the docs document.
 
 ## Layout
 

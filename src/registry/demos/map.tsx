@@ -2,11 +2,13 @@
 
 /** slug -> demo component. Split from the catalog so `registry/index.ts` stays
  *  plain data a server component may read. A slug absent here has no standalone
- *  demo (a hook, a script tag) and Stage says so. */
+ *  demo (a hook, a script tag) and the page says so. */
 
 import * as D from './index';
 
 export const DEMOS: Record<string, React.ComponentType> = {
+  'app-shell': D.AppShellDemo,
+  'nav-menu': D.NavMenuDemo,
   'sidebar': D.SidebarDemo,
   'topbar': D.TopbarDemo,
   'breadcrumbs': D.BreadcrumbsDemo,

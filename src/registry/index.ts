@@ -46,6 +46,8 @@ const media = e('media', 'media');
 
 export const ENTRIES: Entry[] = [
   // ---- Layout & shell ----
+  layout('AppShell', 'The dashboard frame: sidebar, header and a scrolling content area, with a mobile off-canvas.'),
+  layout('NavMenu', 'Documentation-style side menu — plain text links under uppercase section headings, with an optional filter.'),
   layout('Sidebar', 'Collapsible nav over a menu tree, nesting to any depth, with a mobile off-canvas and an icon-rail mode.'),
   layout('Topbar', 'Header bar composing breadcrumbs, notifications, appearance and account.'),
   layout('Breadcrumbs', 'Path-derived trail; segments are titled from a label map.'),

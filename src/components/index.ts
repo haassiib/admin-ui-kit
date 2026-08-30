@@ -9,6 +9,7 @@
 
 // layout
 export { default as Alert } from './layout/Alert';
+export { default as AppShell } from './layout/AppShell';
 export { default as Avatar } from './layout/Avatar';
 export { default as Breadcrumbs } from './layout/Breadcrumbs';
 export { default as Button } from './layout/Button';
@@ -17,6 +18,8 @@ export { default as EmptyState } from './layout/EmptyState';
 export { default as IdleLogout } from './layout/IdleLogout';
 export { default as MenuIcon } from './layout/MenuIcon';
 export { ICON_MAP, ICON_NAMES, resolveMenuIcon } from './layout/MenuIcon';
+export { default as NavMenu } from './layout/NavMenu';
+export type { NavItem, NavSection } from './layout/NavMenu';
 export { default as Sidebar } from './layout/Sidebar';
 export { default as Splitter } from './layout/Splitter';
 export { default as Tabs } from './layout/Tabs';

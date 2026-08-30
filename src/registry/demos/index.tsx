@@ -7,6 +7,8 @@ import { useRef, useState } from 'react';
 import { Coins, RefreshCw, TrendingUp, Users, Zap } from 'lucide-react';
 
 import Alert from '@/components/layout/Alert';
+import AppShell from '@/components/layout/AppShell';
+import NavMenu from '@/components/layout/NavMenu';
 import Avatar from '@/components/layout/Avatar';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 import Button from '@/components/layout/Button';
@@ -710,5 +712,54 @@ export function MediaLibraryDemo() {
         ])
       }
     />
+  );
+}
+
+/* ------------------------------------------------------- shell and menu --- */
+
+export function AppShellDemo() {
+  return (
+    <div className="h-[28rem] overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
+      {/* Scaled down inside a frame: the real thing is `h-screen`, which would
+          take over the page it is being previewed on. */}
+      <div className="h-full [&>div]:h-full">
+        <AppShell
+          brand={<span className="text-sm font-bold text-slate-900 dark:text-white">Acme</span>}
+          actions={<Badge tone="info">Pro</Badge>}
+          sidebarWidth="w-52"
+          sidebar={
+            <NavMenu
+              activeHref="/members"
+              sections={[
+                { label: 'Workspace', items: [{ label: 'Overview', href: '/' }, { label: 'Members', href: '/members' }] },
+                { label: 'Settings', items: [{ label: 'Billing', href: '/billing' }, { label: 'Roles', href: '/roles' }] },
+              ]}
+            />
+          }
+        >
+          <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Members</h2>
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+            Page content goes here. Narrow the window to see the sidebar collapse to a drawer.
+          </p>
+        </AppShell>
+      </div>
+    </div>
+  );
+}
+
+export function NavMenuDemo() {
+  const sections = [
+    { label: 'Workspace', items: [{ label: 'Overview', href: '/' }, { label: 'Members', href: '/members', badge: '8' }, { label: 'Projects', href: '/projects' }] },
+    { label: 'Settings', items: [{ label: 'Billing', href: '/billing' }, { label: 'Roles', href: '/roles' }, { label: 'Integrations', href: '/integrations' }] },
+  ];
+  return (
+    <div className="flex gap-6">
+      <div className="w-56 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+        <NavMenu sections={sections} activeHref="/members" />
+      </div>
+      <div className="w-56 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+        <NavMenu sections={sections} activeHref="/roles" filterable />
+      </div>
+    </div>
   );
 }
