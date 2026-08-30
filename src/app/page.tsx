@@ -1,5 +1,5 @@
-import Overview from '@/components/gallery/Overview';
+import GalleryShell from '@/components/gallery/GalleryShell';
 
 export default function Page() {
-  return <Overview />;
+  return <GalleryShell />;
 }

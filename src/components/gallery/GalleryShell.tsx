@@ -74,10 +74,11 @@ export default function GalleryShell() {
     <div className="flex flex-col">
       <header className="mb-5">
         <h1 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">
-          Browse all components
+          Components
         </h1>
         <p className="mt-1 max-w-3xl text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-          Every component, rendered live. Open one to see its usage snippet and full source.
+          Every component, rendered live. Open one for its examples, props and source — or search
+          and filter here.
         </p>
       </header>
 

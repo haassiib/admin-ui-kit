@@ -18,9 +18,11 @@ npm run dev            # gallery at http://localhost:3020
 
 | Route | |
 |---|---|
-| `/` | Overview — every component grouped by category |
-| `/all` | All 57 on one page, with search and filters |
+| `/` | All 57 components on one page, with search and filters |
 | `/preview/<slug>` | One component's documentation page |
+
+(`/all` redirects to `/` — it was the listing's address before the overview page
+was removed.)
 
 Each component page is laid out like a docs site:
 
