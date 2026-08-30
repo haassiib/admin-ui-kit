@@ -27,15 +27,16 @@ was removed.)
 Each component page is laid out like a docs site:
 
 - **Import** — the exact import line, with a copy button
-- **Examples** — one section per mode, each with a heading, a sentence on what it
-  shows, the live thing, and a *Show code* toggle over that example's own source
+- **Examples** — at most three per component, each with a heading, a sentence on
+  what it shows, the live thing, and a *Show code* toggle over its own source.
+  Variants that differ by one prop are folded into a single example with a
+  control, rather than repeated as near-identical screenshots
 - **Props** — name, type, default and description, **parsed from the component's
   own types at build time**, so the table cannot drift from the code
 - **Source** — the whole file
 - **On this page** — a right-hand nav that tracks the section you are reading
 
-`Splitter`, for instance, has six examples: Basic, Vertical, Size, Min and max
-size, Nested, and Resize events.
+`DataTable`, for instance, has three: Basic, Every feature, and Loading/empty.
 
 ## Components
 

@@ -206,22 +206,6 @@ html[data-density='standard']    table th { padding-top: 0; padding-bottom: 0; l
 html[data-density='comfortable'] table td { padding-top: 0; padding-bottom: 0; line-height: 48px; }
 html[data-density='comfortable'] table th { padding-top: 0; padding-bottom: 0; line-height: 58px; }
 
-/* ---------------------------------------------------------------------------
-   DATATABLE ROW SIZE (`size` prop) — a per-table override of the density above.
-
-   It has to set LINE-HEIGHT, not padding, because the density rules already
-   zero the vertical padding of every cell on the page; a size prop expressed as
-   padding would compute to nothing.
-
-   The selectors are shaped to TIE with the density rules on specificity —
-   one attribute, three elements — and they win by being declared after them.
-   That is deliberate and it is why the leading `html` is there: drop it and the
-   rule silently loses to density instead. Keep this block below that one.
---------------------------------------------------------------------------- */
-html table[data-size='small'] td  { line-height: 30px; }
-html table[data-size='small'] th  { line-height: 34px; }
-html table[data-size='large'] td  { line-height: 52px; }
-html table[data-size='large'] th  { line-height: 56px; }
 
 /* ---------------------------------------------------------------------------
    SCROLLBARS. The projects named these differently — `.scrollbar-thin` in

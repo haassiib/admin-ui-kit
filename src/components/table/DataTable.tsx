@@ -17,7 +17,6 @@ import EmptyState from '@/components/layout/EmptyState';
 import Pagination from './Pagination';
 
 export type ColumnPin = 'left' | 'right';
-export type TableSize = 'small' | 'normal' | 'large';
 
 export type Column<T> = {
   key: string;
@@ -84,8 +83,6 @@ export default function DataTable<T>({
   pinnedRowIds,
   loading = false,
   stripedRows = false,
-  showGridlines = false,
-  size = 'normal',
   header,
   footer,
   emptyTitle = 'Nothing here yet',
@@ -113,16 +110,16 @@ export default function DataTable<T>({
   /** Rows kept above the scroll, in the order given. */
   pinnedRowIds?: Array<string | number>;
   loading?: boolean;
-  /** Alternating row backgrounds. Selection and pinning still win over the stripe. */
-  stripedRows?: boolean;
-  /** Vertical rules between cells. Horizontal rules are always on. */
-  showGridlines?: boolean;
   /**
-   * Row height. Applied as `data-size` on the table and resolved in CSS, since
-   * the app-wide density rules zero every cell's vertical padding — a size
-   * expressed in padding would compute to nothing. See globals.css.
+   * Alternating row backgrounds. Selection and pinning still win over the stripe.
+   *
+   * The only banding option, deliberately. Vertical gridlines solve the same
+   * problem — following one row across a wide table — and offering both invites
+   * tables that use each in different places for no reason. Row height is not
+   * here either: that is the app-wide density setting, and a per-table size
+   * prop would be a second control for one thing.
    */
-  size?: TableSize;
+  stripedRows?: boolean;
   /** A bar above the table, beside the search and column controls. */
   header?: React.ReactNode;
   /** A bar below the table, above the pagination. */
@@ -325,11 +322,7 @@ export default function DataTable<T>({
         className="custom-scrollbar min-h-0 flex-1 overflow-auto"
         style={maxHeight ? { maxHeight } : undefined}
       >
-        <table
-          className="data-table"
-          data-size={size === 'normal' ? undefined : size}
-          style={{ tableLayout: resizable ? 'fixed' : 'auto' }}
-        >
+        <table className="data-table" style={{ tableLayout: resizable ? 'fixed' : 'auto' }}>
           <thead ref={headRef}>
             <tr>
               {selectable && (
@@ -388,7 +381,6 @@ export default function DataTable<T>({
                   onSelectedChange={onSelectedChange}
                   colStyle={colStyle}
                   pinClass={pinClass}
-                  gridlines={showGridlines}
                   stickyTop={headHeight}
                 />
               ))}
@@ -425,7 +417,6 @@ export default function DataTable<T>({
                   onSelectedChange={onSelectedChange}
                   colStyle={colStyle}
                   pinClass={pinClass}
-                  gridlines={showGridlines}
                   striped={stripedRows}
                 />
               ))
@@ -482,7 +473,6 @@ function Row<T>({
   onSelectedChange,
   colStyle,
   pinClass,
-  gridlines,
   striped,
   stickyTop,
 }: {
@@ -494,7 +484,6 @@ function Row<T>({
   onSelectedChange?: (next: Array<string | number>) => void;
   colStyle: (c: Column<T>) => React.CSSProperties;
   pinClass: (c: Column<T>) => string | false | undefined;
-  gridlines?: boolean;
   striped?: boolean;
   /** Set for a pinned row: how far under the header it sticks. */
   stickyTop?: number;
@@ -538,7 +527,6 @@ function Row<T>({
           style={{ ...colStyle(c), ...cellStyle }}
           className={cn(
             'truncate px-3',
-            gridlines && 'border-r border-slate-200 last:border-r-0 dark:border-slate-700',
             c.align === 'right' && 'text-right',
             pinClass(c),
             cellBase,
