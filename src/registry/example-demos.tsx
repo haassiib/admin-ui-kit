@@ -24,7 +24,7 @@ import Pagination from '@/components/table/Pagination';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Tooltip, { InfoTooltip } from '@/components/overlay/Tooltip';
 import Progress from '@/components/data/Progress';
-import DataTable from '@/components/table/DataTable';
+import DataTable, { type Column } from '@/components/table/DataTable';
 import { CombinedFilterDropdown, type FilterValue } from '@/components/form/CombinedFilterDropdown';
 import Drawer from '@/components/overlay/Drawer';
 import Card from '@/components/layout/Card';
@@ -692,34 +692,145 @@ function ProgressClamped() {
   );
 }
 
-const PEOPLE_MINI = [
-  { id: 1, name: 'Ada Lovelace', team: 'Engineering', projects: 12 },
-  { id: 2, name: 'Grace Hopper', team: 'Engineering', projects: 9 },
-  { id: 3, name: 'Alan Turing', team: 'Research', projects: 6 },
+type Member = {
+  id: number;
+  name: string;
+  email: string;
+  team: string;
+  role: string;
+  status: 'active' | 'invited' | 'suspended';
+  projects: number;
+  spend: number;
+};
+
+const MEMBERS: Member[] = [
+  { id: 1, name: 'Ada Lovelace',   email: 'ada@example.com',   team: 'Engineering', role: 'Admin',      status: 'active',    projects: 12, spend: 18_420 },
+  { id: 2, name: 'Grace Hopper',   email: 'grace@example.com', team: 'Engineering', role: 'Maintainer', status: 'active',    projects: 9,  spend: 15_280 },
+  { id: 3, name: 'Alan Turing',    email: 'alan@example.com',  team: 'Research',    role: 'Maintainer', status: 'invited',   projects: 6,  spend: 9_840 },
+  { id: 4, name: 'Katherine J.',   email: 'kj@example.com',    team: 'Research',    role: 'Viewer',     status: 'active',    projects: 4,  spend: 7_415 },
+  { id: 5, name: 'Alan Kay',       email: 'kay@example.com',   team: 'Design',      role: 'Maintainer', status: 'suspended', projects: 3,  spend: 4_190 },
+  { id: 6, name: 'Barbara Liskov', email: 'bl@example.com',    team: 'Engineering', role: 'Viewer',     status: 'active',    projects: 7,  spend: 11_060 },
+  { id: 7, name: 'Edsger D.',      email: 'ed@example.com',    team: 'Research',    role: 'Viewer',     status: 'active',    projects: 2,  spend: 2_330 },
+  { id: 8, name: 'Margaret H.',    email: 'mh@example.com',    team: 'Design',      role: 'Admin',      status: 'active',    projects: 8,  spend: 13_770 },
 ];
 
-const MINI_COLUMNS = [
-  { key: 'name', header: 'Name', cell: (p: (typeof PEOPLE_MINI)[number]) => p.name, sortValue: (p: (typeof PEOPLE_MINI)[number]) => p.name },
-  { key: 'team', header: 'Team', cell: (p: (typeof PEOPLE_MINI)[number]) => p.team, sortValue: (p: (typeof PEOPLE_MINI)[number]) => p.team },
-  { key: 'projects', header: 'Projects', align: 'right' as const, cell: (p: (typeof PEOPLE_MINI)[number]) => p.projects, sortValue: (p: (typeof PEOPLE_MINI)[number]) => p.projects },
-];
+const statusTone = (s: Member['status']) =>
+  s === 'active' ? ('success' as const) : s === 'invited' ? ('info' as const) : ('danger' as const);
+
+const NAME: Column<Member> = {
+  key: 'name', header: 'Name', width: 180,
+  cell: (m) => <span className="font-medium text-slate-700 dark:text-slate-200">{m.name}</span>,
+  sortValue: (m) => m.name, filterValue: (m) => m.name,
+};
+const EMAIL: Column<Member> = { key: 'email', header: 'Email', width: 190, cell: (m) => m.email, sortValue: (m) => m.email, filterValue: (m) => m.email };
+const TEAM: Column<Member> = { key: 'team', header: 'Team', width: 140, cell: (m) => m.team, sortValue: (m) => m.team, filterValue: (m) => m.team, filterable: true };
+const ROLE: Column<Member> = { key: 'role', header: 'Role', width: 130, cell: (m) => m.role, sortValue: (m) => m.role, filterValue: (m) => m.role, filterable: true };
+const STATUS: Column<Member> = {
+  key: 'status', header: 'Status', width: 120,
+  cell: (m) => <Badge dot tone={statusTone(m.status)}>{m.status}</Badge>,
+  sortValue: (m) => m.status, filterValue: (m) => m.status, filterable: true,
+};
+const PROJECTS: Column<Member> = { key: 'projects', header: 'Projects', align: 'right', width: 110, cell: (m) => m.projects, sortValue: (m) => m.projects };
+const SPEND: Column<Member> = { key: 'spend', header: 'Spend', align: 'right', width: 120, cell: (m) => `$${m.spend.toLocaleString()}`, sortValue: (m) => m.spend };
+
+const CORE = [NAME, EMAIL, TEAM, ROLE, STATUS, PROJECTS, SPEND];
 
 function DataTableBasic() {
-  return <DataTable rows={PEOPLE_MINI} columns={MINI_COLUMNS} getRowId={(p) => p.id} />;
+  return <DataTable rows={MEMBERS} columns={[NAME, TEAM, PROJECTS]} getRowId={(m) => m.id} />;
+}
+
+function DataTableSorting() {
+  return <DataTable rows={MEMBERS} columns={[NAME, TEAM, STATUS, PROJECTS, SPEND]} getRowId={(m) => m.id} />;
 }
 
 function DataTableSelection() {
   const [selected, setSelected] = useState<Array<string | number>>([2]);
   return (
     <DataTable
-      rows={PEOPLE_MINI}
-      columns={MINI_COLUMNS}
-      getRowId={(p) => p.id}
+      rows={MEMBERS}
+      columns={[NAME, TEAM, STATUS]}
+      getRowId={(m) => m.id}
       selectable
       selected={selected}
       onSelectedChange={setSelected}
+      selectionActions={(ids) => (
+        <>
+          <Button size="sm" variant="ghost">Export {ids.length}</Button>
+          <Button size="sm" variant="danger">Remove</Button>
+        </>
+      )}
     />
   );
+}
+
+function DataTableSearch() {
+  return <DataTable rows={MEMBERS} columns={CORE} getRowId={(m) => m.id} searchable searchPlaceholder="Search members…" />;
+}
+
+function DataTableFilters() {
+  return <DataTable rows={MEMBERS} columns={[NAME, TEAM, ROLE, STATUS]} getRowId={(m) => m.id} />;
+}
+
+function DataTablePinnedColumns() {
+  return (
+    <DataTable
+      rows={MEMBERS}
+      getRowId={(m) => m.id}
+      columns={[{ ...NAME, pin: 'left' }, EMAIL, TEAM, ROLE, STATUS, PROJECTS, { ...SPEND, pin: 'right' }]}
+    />
+  );
+}
+
+function DataTablePinnedRows() {
+  return (
+    <DataTable
+      rows={MEMBERS}
+      columns={[NAME, TEAM, STATUS, SPEND]}
+      getRowId={(m) => m.id}
+      pinnedRowIds={[1, 8]}
+      maxHeight="16rem"
+    />
+  );
+}
+
+function DataTableResizable() {
+  return <DataTable rows={MEMBERS} columns={[NAME, EMAIL, TEAM, SPEND]} getRowId={(m) => m.id} resizable />;
+}
+
+function DataTableColumnToggle() {
+  return (
+    <DataTable
+      rows={MEMBERS}
+      getRowId={(m) => m.id}
+      columns={[{ ...NAME, alwaysVisible: true }, EMAIL, TEAM, ROLE, STATUS, PROJECTS, SPEND]}
+      columnToggle
+    />
+  );
+}
+
+function DataTableEverything() {
+  const [selected, setSelected] = useState<Array<string | number>>([]);
+  return (
+    <DataTable
+      rows={MEMBERS}
+      getRowId={(m) => m.id}
+      columns={[{ ...NAME, pin: 'left', alwaysVisible: true }, EMAIL, TEAM, ROLE, STATUS, PROJECTS, { ...SPEND, pin: 'right' }]}
+      selectable
+      selected={selected}
+      onSelectedChange={setSelected}
+      selectionActions={(ids) => <Button size="sm" variant="ghost">Export {ids.length}</Button>}
+      searchable
+      resizable
+      columnToggle
+      pinnedRowIds={[1]}
+      pageSize={25}
+      maxHeight="18rem"
+    />
+  );
+}
+
+function DataTableLoading() {
+  return <DataTable rows={MEMBERS} columns={[NAME, TEAM, STATUS, SPEND]} getRowId={(m) => m.id} loading />;
 }
 
 /**
@@ -742,7 +853,7 @@ function DataTableRanked() {
       rows={RANKED_ROWS}
       getRowId={(r: Row) => r.id}
       columns={[
-        { key: 'rank', header: '#', width: '3rem', cell: (r: Row) => <span className="tabular-nums text-slate-400">{r.rank}</span> },
+        { key: 'rank', header: '#', width: 56, cell: (r: Row) => <span className="tabular-nums text-slate-400">{r.rank}</span> },
         { key: 'name', header: 'Team', cell: (r: Row) => <span className="font-medium text-slate-700 dark:text-slate-200">{r.name}</span>, sortValue: (r: Row) => r.name },
         { key: 'spend', header: 'Spend', align: 'right', cell: (r: Row) => <span className="tabular-nums">${r.spend.toLocaleString()}</span>, sortValue: (r: Row) => r.spend },
         { key: 'count', header: 'Signups', align: 'right', cell: (r: Row) => <span className="tabular-nums">{r.count.toLocaleString()}</span>, sortValue: (r: Row) => r.count },
@@ -763,7 +874,15 @@ function DataTableRanked() {
 }
 
 function DataTableEmpty() {
-  return <DataTable rows={[]} columns={MINI_COLUMNS} getRowId={(p: { id: number }) => p.id} emptyTitle="No members yet" emptyHint="Invite someone to get started." />;
+  return (
+    <DataTable
+      rows={[] as Member[]}
+      columns={[NAME, TEAM, STATUS]}
+      getRowId={(m) => m.id}
+      emptyTitle="No members yet"
+      emptyHint="Invite someone to get started."
+    />
+  );
 }
 
 /* ------------------------------------------------------------------------- */
@@ -789,7 +908,13 @@ export const EXAMPLE_DEMOS: Record<string, Record<string, React.ComponentType>> 
   },
   'tooltip': { 'placement': TooltipPlacement, 'appearance': TooltipAppearance, 'info': TooltipInfo },
   'progress': { 'basic': ProgressBasic, 'clamped': ProgressClamped },
-  'data-table': { 'basic': DataTableBasic, 'selection': DataTableSelection, 'ranked': DataTableRanked, 'empty': DataTableEmpty },
+  'data-table': {
+    'basic': DataTableBasic, 'sorting': DataTableSorting, 'selection': DataTableSelection,
+    'search': DataTableSearch, 'filters': DataTableFilters, 'pinned-columns': DataTablePinnedColumns,
+    'pinned-rows': DataTablePinnedRows, 'resizable': DataTableResizable,
+    'column-toggle': DataTableColumnToggle, 'everything': DataTableEverything,
+    'loading': DataTableLoading, 'ranked': DataTableRanked, 'empty': DataTableEmpty,
+  },
 };
 
 export type Example = ExampleMeta & { Demo: React.ComponentType };

@@ -380,7 +380,7 @@ export function MonthGridDemo() {
 /* ----------------------------------------------------------------- table --- */
 
 const PEOPLE_COLUMNS: Column<(typeof PEOPLE)[number]>[] = [
-  { key: 'name', header: 'Name', cell: (p) => <span className="font-medium text-slate-700 dark:text-slate-200">{p.name}</span>, sortValue: (p) => p.name, sticky: true },
+  { key: 'name', header: 'Name', cell: (p) => <span className="font-medium text-slate-700 dark:text-slate-200">{p.name}</span>, sortValue: (p) => p.name, pin: 'left' },
   { key: 'email', header: 'Email', cell: (p) => p.email, sortValue: (p) => p.email },
   { key: 'team', header: 'Team', cell: (p) => p.team, sortValue: (p) => p.team },
   { key: 'status', header: 'Status', cell: (p) => (

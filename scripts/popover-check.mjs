@@ -27,7 +27,10 @@ const BASE = 'http://localhost:3020';
 // and scoping to the whole page finds the Show-code buttons first.
 const BODY = 'main [data-demo]';
 
+// [slug, how, trigger selector within the demo]. The selector defaults to the
+// first control; DataTable needs it, because its first button sorts a column.
 const CASES = [
+  ['data-table', 'click', 'thead th button[aria-label^="Filter"]'],
   ['multi-select', 'click'],
   ['autocomplete-dropdown', 'click'],
   ['combined-filter-dropdown', 'click'],
@@ -48,7 +51,7 @@ const CASES = [
 const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new', args: ['--no-sandbox'] });
 const results = [];
 
-for (const [slug, how] of CASES) {
+for (const [slug, how, selector] of CASES) {
   const page = await browser.newPage();
   await page.setViewport({ width: 1440, height: 900 });
   try {
@@ -56,7 +59,11 @@ for (const [slug, how] of CASES) {
     await page.waitForSelector(BODY, { timeout: 8000 });
 
     const before = await page.evaluate(() => document.querySelectorAll('*').length);
-    const trigger = await page.$(`${BODY} button, ${BODY} input[role="combobox"], ${BODY} input[type="text"], ${BODY} [role="button"]`);
+    const trigger = await page.$(
+      selector
+        ? `${BODY} ${selector}`
+        : `${BODY} button, ${BODY} input[role="combobox"], ${BODY} input[type="text"], ${BODY} [role="button"]`,
+    );
     if (!trigger) { results.push([slug, 'NO TRIGGER', '']); await page.close(); continue; }
     if (how === 'hover') await trigger.hover(); else await trigger.click();
     await new Promise((r) => setTimeout(r, 500));
