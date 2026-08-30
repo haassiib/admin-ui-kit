@@ -66,7 +66,6 @@ export type { Column } from './table/DataTable';
 export { default as EditableCell } from './table/EditableCell';
 export { default as Pagination } from './table/Pagination';
 export type { PaginationNavigation, PaginationVariant } from './table/Pagination';
-export { default as Paginator } from './table/Paginator';
 export { default as PasteableGrid } from './table/PasteableGrid';
 export type { PasteableGridColumn, PasteableGridHandle } from './table/PasteableGrid';
 export { default as SaveAllBar } from './table/SaveAllBar';

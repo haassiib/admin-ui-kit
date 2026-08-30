@@ -15,13 +15,6 @@
 export type ExampleMeta = { id: string; title: string; description?: string };
 
 export const EXAMPLE_META: Record<string, ExampleMeta[]> = {
-  'paginator': [
-      { id: 'basic', title: 'Basic', description: 'The parts in their conventional order. Every one reads its state from the Root, so none of them takes props.' },
-      { id: 'template', title: 'Template', description: 'Arrange the parts however the layout needs, and put your own content between them — steppers pushed to the edges with a label in the middle.' },
-      { id: 'custom-text', title: 'Custom text', description: 'The steppers take children, so an icon becomes a word. `Paginator.Report` is a render prop over the current numbers.' },
-      { id: 'with-input', title: 'With an input', description: 'A jump-to-page field is just another child. The Root owns the clamping, so the field only has to parse.' },
-      { id: 'custom-pages', title: 'Custom page links', description: '`Paginator.Pages` takes a render prop for one link, and inserts the ellipsis gaps itself. Here with zero-padded labels, pill shapes, and two siblings.' },
-  ],
   'drawer': [
       { id: 'basic', title: 'Basic', description: 'A full-height panel on the right, over a dimmed backdrop. Drag its left edge to resize; Escape, the backdrop and the close button all dismiss it.' },
       { id: 'anchored', title: 'Anchored to an element', description: '`anchorRef` fits the panel to an element instead of the viewport — the card whose content it belongs to. Point it at the CARD, never at the button that opens it: it mirrors the element\'s top, height and right edge, so a 28px button yields a 28px drawer.' },
@@ -75,6 +68,11 @@ export const EXAMPLE_META: Record<string, ExampleMeta[]> = {
       { id: 'url', title: 'Driven by the URL', description: 'Read the page from the query string and push it back on change, so a paginated view is linkable and survives a reload. This was a separate UrlPagination component; it was eight lines of wiring, so it is an example instead. Try it — the address bar updates.' },
       { id: 'pill', title: 'Pill', description: 'A centred rounded pill, in flow below the table.' },
       { id: 'floating', title: 'Floating', description: 'The same pill, fixed to the bottom of the viewport. Look at the foot of the window.' },
+      { id: 'composed', title: 'Composed from parts', description: 'The same control assembled by hand: Pagination.Root holds the state, and First, Prev, Pages, Next and Last read it from context. Use this when the props cannot express the layout you need.' },
+      { id: 'template', title: 'Template', description: 'Arrange the parts however the layout needs, and put your own content between them — steppers pushed to the edges with a label in the middle.' },
+      { id: 'custom-text', title: 'Custom text', description: 'The steppers take children, so an icon becomes a word. Pagination.Report is a render prop over the current numbers.' },
+      { id: 'with-input', title: 'With an input', description: 'A jump-to-page field is just another child. The Root owns the clamping, so the field only has to parse.' },
+      { id: 'custom-pages', title: 'Custom page links', description: 'Pagination.Pages takes a render prop for one link and inserts the ellipsis gaps itself. Here with zero-padded labels, pill shapes, and two siblings.' },
   ],
   'tooltip': [
       { id: 'placement', title: 'Placement', description: 'Four sides. The bubble flips automatically when the chosen side would overflow the viewport.' },

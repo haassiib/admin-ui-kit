@@ -48,7 +48,6 @@ import AccountCell from '@/components/table/AccountCell';
 import DataTable, { type Column } from '@/components/table/DataTable';
 import EditableCell from '@/components/table/EditableCell';
 import Pagination from '@/components/table/Pagination';
-import Paginator from '@/components/table/Paginator';
 import PasteableGrid from '@/components/table/PasteableGrid';
 import SaveAllBar from '@/components/table/SaveAllBar';
 import SortableList from '@/components/table/SortableList';
@@ -790,23 +789,5 @@ export function PickListDemo() {
       targetHeader="Reviewers"
       filterable
     />
-  );
-}
-
-export function PaginatorDemo() {
-  const [page, setPage] = useState(4);
-  return (
-    <div className="rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-700">
-      <Paginator.Root total={480} itemsPerPage={10} page={page} onPageChange={setPage}>
-        <Paginator.Content>
-          <Paginator.First />
-          <Paginator.Prev />
-          <Paginator.Pages />
-          <Paginator.Next />
-          <Paginator.Last />
-          <Paginator.Report className="ml-2" />
-        </Paginator.Content>
-      </Paginator.Root>
-    </div>
   );
 }

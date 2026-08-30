@@ -21,7 +21,6 @@ import Button from '@/components/layout/Button';
 import Badge from '@/components/data/Badge';
 import Alert from '@/components/layout/Alert';
 import Pagination from '@/components/table/Pagination';
-import Paginator from '@/components/table/Paginator';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Tooltip, { InfoTooltip } from '@/components/overlay/Tooltip';
 import Progress from '@/components/data/Progress';
@@ -258,80 +257,80 @@ function CombinedFilterDropdownEmpty() {
   return <CombinedFilterDropdown {...bound} />;
 }
 
-/* ------------------------------------------------------------ Paginator --- */
+/* ------------------------------------ Pagination, composed part by part --- */
 
 const Framed = ({ children }: { children: React.ReactNode }) => (
   <div className="rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-700">{children}</div>
 );
 
-function PaginatorBasic() {
+function PaginationComposed() {
   const [page, setPage] = useState(4);
   return (
     <Framed>
-      <Paginator.Root total={480} itemsPerPage={10} page={page} onPageChange={setPage}>
-        <Paginator.Content>
-          <Paginator.First />
-          <Paginator.Prev />
-          <Paginator.Pages />
-          <Paginator.Next />
-          <Paginator.Last />
-        </Paginator.Content>
-      </Paginator.Root>
+      <Pagination.Root total={480} itemsPerPage={10} page={page} onPageChange={setPage}>
+        <Pagination.Content>
+          <Pagination.First />
+          <Pagination.Prev />
+          <Pagination.Pages />
+          <Pagination.Next />
+          <Pagination.Last />
+        </Pagination.Content>
+      </Pagination.Root>
     </Framed>
   );
 }
 
-function PaginatorTemplate() {
+function PaginationTemplate() {
   const [page, setPage] = useState(4);
   return (
     <Framed>
-      <Paginator.Root total={480} itemsPerPage={10} page={page} onPageChange={setPage}>
-        <Paginator.Content className="justify-between">
+      <Pagination.Root total={480} itemsPerPage={10} page={page} onPageChange={setPage}>
+        <Pagination.Content className="justify-between">
           <span className="flex items-center gap-1">
-            <Paginator.First />
-            <Paginator.Prev />
+            <Pagination.First />
+            <Pagination.Prev />
           </span>
           {/* Anything can sit between the parts — this is the point of the API. */}
           <span className="text-slate-500 dark:text-slate-400">Page {page} of 48</span>
           <span className="flex items-center gap-1">
-            <Paginator.Next />
-            <Paginator.Last />
+            <Pagination.Next />
+            <Pagination.Last />
           </span>
-        </Paginator.Content>
-      </Paginator.Root>
+        </Pagination.Content>
+      </Pagination.Root>
     </Framed>
   );
 }
 
-function PaginatorCustomText() {
+function PaginationCustomText() {
   const [page, setPage] = useState(4);
   return (
     <Framed>
-      <Paginator.Root total={480} itemsPerPage={10} page={page} onPageChange={setPage}>
-        <Paginator.Content>
-          <Paginator.Prev>← Newer</Paginator.Prev>
-          <Paginator.Report>
+      <Pagination.Root total={480} itemsPerPage={10} page={page} onPageChange={setPage}>
+        <Pagination.Content>
+          <Pagination.Prev>← Newer</Pagination.Prev>
+          <Pagination.Report>
             {({ rangeStart, rangeEnd, total }) => (
               <span className="text-slate-500 dark:text-slate-400">
                 Showing {rangeStart}–{rangeEnd} of {total} results
               </span>
             )}
-          </Paginator.Report>
-          <Paginator.Next>Older →</Paginator.Next>
-        </Paginator.Content>
-      </Paginator.Root>
+          </Pagination.Report>
+          <Pagination.Next>Older →</Pagination.Next>
+        </Pagination.Content>
+      </Pagination.Root>
     </Framed>
   );
 }
 
-function PaginatorWithInput() {
+function PaginationWithInput() {
   const [page, setPage] = useState(4);
   const [draft, setDraft] = useState('4');
   return (
     <Framed>
-      <Paginator.Root total={480} itemsPerPage={10} page={page} onPageChange={(n) => { setPage(n); setDraft(String(n)); }}>
-        <Paginator.Content>
-          <Paginator.Prev />
+      <Pagination.Root total={480} itemsPerPage={10} page={page} onPageChange={(n) => { setPage(n); setDraft(String(n)); }}>
+        <Pagination.Content>
+          <Pagination.Prev />
           <label className="flex items-center gap-1.5">
             Go to
             <input
@@ -347,28 +346,28 @@ function PaginatorWithInput() {
             />
             <span className="text-slate-400">of 48</span>
           </label>
-          <Paginator.Next />
-        </Paginator.Content>
-      </Paginator.Root>
+          <Pagination.Next />
+        </Pagination.Content>
+      </Pagination.Root>
     </Framed>
   );
 }
 
-function PaginatorCustomPages() {
+function PaginationCustomPages() {
   const [page, setPage] = useState(4);
   return (
     <Framed>
-      <Paginator.Root total={480} itemsPerPage={10} page={page} onPageChange={setPage} siblings={2}>
-        <Paginator.Content>
-          <Paginator.Pages>
+      <Pagination.Root total={480} itemsPerPage={10} page={page} onPageChange={setPage} siblings={2}>
+        <Pagination.Content>
+          <Pagination.Pages>
             {(n) => (
-              <Paginator.Page page={n} className="rounded-full">
+              <Pagination.Page page={n} className="rounded-full">
                 {String(n).padStart(2, '0')}
-              </Paginator.Page>
+              </Pagination.Page>
             )}
-          </Paginator.Pages>
-        </Paginator.Content>
-      </Paginator.Root>
+          </Pagination.Pages>
+        </Pagination.Content>
+      </Pagination.Root>
     </Framed>
   );
 }
@@ -711,10 +710,6 @@ function DataTableEmpty() {
 
 /** slug -> example id -> component. Joined to `EXAMPLE_META` by id. */
 export const EXAMPLE_DEMOS: Record<string, Record<string, React.ComponentType>> = {
-  'paginator': {
-    'basic': PaginatorBasic, 'template': PaginatorTemplate, 'custom-text': PaginatorCustomText,
-    'with-input': PaginatorWithInput, 'custom-pages': PaginatorCustomPages,
-  },
   'drawer': { 'basic': DrawerBasic, 'anchored': DrawerAnchored, 'no-backdrop': DrawerNoBackdrop, 'header-actions': DrawerHeaderActions },
   'combined-filter-dropdown': { 'chips': CombinedFilterDropdownChips, 'summary': CombinedFilterDropdownSummary, 'empty': CombinedFilterDropdownEmpty },
   'layout': { 'left': LayoutLeft, 'right': LayoutRight, 'top': LayoutTop, 'bottom': LayoutBottom },
@@ -727,6 +722,9 @@ export const EXAMPLE_DEMOS: Record<string, Record<string, React.ComponentType>> 
     'basic': PaginationBasic, 'siblings': PaginationSiblings, 'edges': PaginationEdges,
     'no-ellipsis': PaginationNoEllipsis, 'input': PaginationInput, 'minimal': PaginationMinimal,
     'url': PaginationUrl,
+    'composed': PaginationComposed, 'template': PaginationTemplate,
+    'custom-text': PaginationCustomText, 'with-input': PaginationWithInput,
+    'custom-pages': PaginationCustomPages,
     'pill': PaginationPill, 'floating': PaginationFloating,
   },
   'tooltip': { 'placement': TooltipPlacement, 'appearance': TooltipAppearance, 'info': TooltipInfo },
