@@ -20,7 +20,7 @@ npm run dev            # gallery at http://localhost:3020
 |---|---|
 | `/` | Overview — every component grouped by category |
 | `/all` | All 55 on one page, with search and filters |
-| `/preview/<slug>` | One component, full width, with three tabs |
+| `/preview/<slug>` | One component's documentation page |
 
 Each component page is laid out like a docs site:
 
@@ -60,7 +60,8 @@ NotificationCard
 
 ## Using a component
 
-1. Open it in the gallery and copy the **Usage** snippet.
+1. Open it in the gallery, find the example closest to what you need, and hit
+   **Show code**.
 2. Copy the file at the path shown in its header into your project.
 3. Copy whatever it imports from `src/lib/` — those are small, pure and have no
    dependencies of their own.
