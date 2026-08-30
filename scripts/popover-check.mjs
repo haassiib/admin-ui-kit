@@ -1,11 +1,21 @@
 /**
- * Opens each dropdown-bearing demo and checks the popover is actually VISIBLE —
- * not merely present in the DOM.
+ * Opens each dropdown-bearing demo and checks the popover is actually usable.
  *
- * A clipped popover is still in the DOM with a real bounding box; what changes
- * is that its pixels land outside an ancestor's paint area. So this walks up
- * from the popover, intersects every clipping ancestor's rect with its own, and
- * reports the surviving fraction.
+ * TWO failures, and they are independent — a popover can pass either one while
+ * failing the other, and both have shipped here:
+ *
+ *   CLIPPED   an `overflow` ancestor cuts the popover's box away. It is still in
+ *             the DOM with a real rect; the pixels just land outside an
+ *             ancestor's paint area. Measured by intersecting every clipping
+ *             ancestor's rect with the popover's.
+ *
+ *   COVERED   the popover paints UNDER later content. Its box is whole and
+ *             on-screen, but something else is drawn on top — usually because an
+ *             ancestor made a stacking context (a `backdrop-filter` is enough)
+ *             and trapped the popover's z-index inside it. Measured by hit
+ *             testing five points against `elementFromPoint`.
+ *
+ * Neither is visible to `tsc` or to `next build`; both stay green throughout.
  */
 import puppeteer from 'puppeteer-core';
 
@@ -90,17 +100,52 @@ for (const [slug, how] of CASES) {
       }
       const vw = Math.max(0, Math.min(r.right, clip.right) - Math.max(r.left, clip.left));
       const vh = Math.max(0, Math.min(r.bottom, clip.bottom) - Math.max(r.top, clip.top));
+
+      // Is anything painted over it? Centre plus the four inner corners.
+      //
+      // Skipped for a `pointer-events: none` element. Tooltip's bubble sets it
+      // deliberately — a tooltip you can hover traps the pointer and flickers
+      // against its own trigger — so it is never what `elementFromPoint`
+      // returns, and hit testing can say nothing about whether it is on top.
+      const hitTestable = getComputedStyle(el).pointerEvents !== 'none';
+      const pts = [
+        [r.left + r.width / 2, r.top + r.height / 2],
+        [r.left + 6, r.top + 6],
+        [r.right - 6, r.top + 6],
+        [r.left + 6, r.bottom - 6],
+        [r.right - 6, r.bottom - 6],
+      ];
+      let covered = 0;
+      let coveredBy = null;
+      for (const [x, y] of hitTestable ? pts : []) {
+        const hit = document.elementFromPoint(x, y);
+        if (!hit || (!el.contains(hit) && hit !== el)) {
+          covered++;
+          if (!coveredBy) coveredBy = `${hit?.tagName.toLowerCase()}.${String(hit?.className || '').split(' ').slice(0, 2).join('.')}`;
+        }
+      }
+
       return {
         found: true,
         pct: Math.round(((vw * vh) / Math.max(1, r.width * r.height)) * 100),
+        covered,
+        points: pts.length,
+        hitTestable,
+        coveredBy,
         size: `${Math.round(r.width)}x${Math.round(r.height)}`,
         position: getComputedStyle(el).position,
         clippers: clippers.slice(0, 2),
       };
     });
 
-    if (!verdict.found) results.push([slug, after > before ? 'OPENED, no positioned box' : 'DID NOT OPEN', '']);
-    else results.push([slug, `${verdict.pct}% visible`, `${verdict.size} ${verdict.position}`]);
+    if (!verdict.found) {
+      results.push([slug, after > before ? 'OPENED, no positioned box' : 'DID NOT OPEN', '']);
+    } else if (verdict.covered > 0) {
+      results.push([slug, `COVERED ${verdict.covered}/${verdict.points}`, `painted under ${verdict.coveredBy}`]);
+    } else {
+      const top = verdict.hitTestable ? 'on top' : 'on top (not hit-testable)';
+      results.push([slug, `${verdict.pct}% visible, ${top}`, `${verdict.size} ${verdict.position}`]);
+    }
   } catch (e) {
     results.push([slug, 'ERROR', String(e.message).slice(0, 70)]);
   }
@@ -111,8 +156,8 @@ await browser.close();
 let fails = 0;
 for (const [slug, v, detail] of results) {
   const m = /^(\d+)% /.exec(v);
-  const bad = /ERROR|DID NOT|NO TRIGGER/.test(v) || (m && Number(m[1]) < 95);
+  const bad = /ERROR|DID NOT|NO TRIGGER|COVERED/.test(v) || (m && Number(m[1]) < 95);
   if (bad) fails++;
   console.log(`${bad ? 'FAIL' : ' ok '}  ${slug.padEnd(28)} ${v.padEnd(28)} ${detail}`);
 }
-console.log(fails ? `\n${fails} failing` : '\nall popovers fully visible');
+console.log(fails ? `\n${fails} failing` : '\nall popovers visible and on top');

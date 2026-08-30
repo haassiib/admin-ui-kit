@@ -347,17 +347,13 @@ export function TreeMultiSelectDropdown({
       </div>
 
       {isOpen && (
-        // z-30 (not the z-10 every other absolutely-positioned popover in
-        // this app defaults to) — this dropdown is used above a
-        // PasteableGrid, whose sticky `<thead>` is also z-10; same DOM-order
-        // tie the sticky-header/sticky-column convention in conventions.md
-        // warns about, so this floats above it deliberately, matching
-        // AutocompleteDropdown's own z-30 for the identical "sits above a
-        // grid" case in AgentStatPasteImportModal.
+        // z-50: the one band every in-flow popover in this library uses. See the
+        // Z-INDEX SCALE note in globals.css — table chrome tops out at 20, so a
+        // menu opened over a table clears its sticky header and frozen column.
         // Two columns (tree left, Selected right) — same split MultiSelectDropdown
         // uses for its flat Available/Selected panes, so a selection stays visible
         // and individually removable without hunting through the tree for its checkbox.
-        <div className="absolute z-30 w-full min-w-[440px] mt-1 bg-white/95 dark:bg-gray-700/95 backdrop-blur-xl border border-gray-200/70 dark:border-gray-600/70 rounded-xl shadow-lg animate-fade-in grid grid-cols-2 divide-x divide-gray-200/70 dark:divide-gray-600/70">
+        <div className="absolute z-50 w-full min-w-[440px] mt-1 bg-white/95 dark:bg-gray-700/95 backdrop-blur-xl border border-gray-200/70 dark:border-gray-600/70 rounded-xl shadow-lg animate-fade-in grid grid-cols-2 divide-x divide-gray-200/70 dark:divide-gray-600/70">
           <div className="p-2 min-w-0">
             <ul className="max-h-80 overflow-y-auto space-y-0.5 scrollbar-thin">
               {visibleTree.length > 0 ? (

@@ -185,7 +185,7 @@ export default function MonthRangePicker({ onDateRangeChange, initialRange, clas
       </button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 origin-top-right bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-gray-200/70 dark:border-gray-700/70 rounded-2xl shadow-xl z-30 p-4 sm:p-6 w-[300px] sm:w-auto sm:min-w-[560px] animate-scale-in">
+        <div className="absolute z-50 top-full right-0 mt-2 origin-top-right bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-gray-200/70 dark:border-gray-700/70 rounded-2xl shadow-xl z-30 p-4 sm:p-6 w-[300px] sm:w-auto sm:min-w-[560px] animate-scale-in">
           <div className="flex items-baseline justify-between mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-base font-semibold text-gray-900 dark:text-white">
               {range.startDate && range.endDate

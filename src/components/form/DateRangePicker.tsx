@@ -394,7 +394,7 @@ export default function DateRangePicker({
           the trigger sits near the right end of its toolbar in both, so the
           800px panel has to open inward (leftward) to stay on the page. */}
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border border-slate-200/70 dark:border-slate-700/70 rounded-2xl shadow-xl z-30 p-4 sm:p-6 w-[300px] sm:w-auto sm:min-w-[800px]">
+        <div className="absolute z-50 top-full right-0 mt-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border border-slate-200/70 dark:border-slate-700/70 rounded-2xl shadow-xl z-30 p-4 sm:p-6 w-[300px] sm:w-auto sm:min-w-[800px]">
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
             {/* Quick Selection Panel */}
             <div className="w-full sm:w-48 flex-shrink-0">

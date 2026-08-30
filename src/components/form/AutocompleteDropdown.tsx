@@ -213,7 +213,7 @@ export function AutocompleteDropdown({ options, value, onChange, placeholder, se
       </div>
 
       {open && (
-        <div className={`absolute z-30 w-full overflow-auto rounded-xl bg-white/95 dark:bg-gray-700/95 backdrop-blur-xl py-2 text-base shadow-lg ring-1 ring-gray-100 dark:ring-gray-600 ring-opacity-5 focus:outline-none sm:text-sm animate-fade-in
+        <div className={`absolute z-50 w-full overflow-auto rounded-xl bg-white/95 dark:bg-gray-700/95 backdrop-blur-xl py-2 text-base shadow-lg ring-1 ring-gray-100 dark:ring-gray-600 ring-opacity-5 focus:outline-none sm:text-sm animate-fade-in
           ${position === 'bottom' ? 'mt-1' : 'bottom-full mb-1'}
         `}
         style={{ maxHeight: '15rem' }} // Equivalent to max-h-60

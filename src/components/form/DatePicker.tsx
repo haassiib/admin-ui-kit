@@ -87,7 +87,7 @@ export function DatePicker({
       </button>
 
       {isOpen && (
-        <div className="absolute z-10 mt-1 w-full rounded-2xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl shadow-lg border border-gray-200/70 dark:border-gray-700/70 p-4 animate-fade-in">
+        <div className="absolute z-50 mt-1 w-full rounded-2xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl shadow-lg border border-gray-200/70 dark:border-gray-700/70 p-4 animate-fade-in">
           <div className="flex items-center justify-between mb-4">
             <button
               type="button"

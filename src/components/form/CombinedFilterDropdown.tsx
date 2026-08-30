@@ -412,7 +412,7 @@ export function CombinedFilterDropdown({
         {isOpen && (
           <div
             ref={panelRef}
-            className={`absolute z-20 mt-1 flex flex-col bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-slate-200/70 dark:border-slate-700/70 rounded-xl shadow-lg animate-fade-in ${
+            className={`absolute z-50 mt-1 flex flex-col bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-slate-200/70 dark:border-slate-700/70 rounded-xl shadow-lg animate-fade-in ${
               panelAlign === 'right' ? 'right-0' : 'left-0'
             }`}
           >
@@ -1005,7 +1005,7 @@ function FilterSelectionSummary({ groups, value, onRemoveOption, onClearAll }: F
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-40 mt-1 w-72 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 shadow-lg">
+        <div className="absolute left-0 top-full z-50 mt-1 w-72 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 shadow-lg">
           {removable.length > 0 ? (
             <>
               <div className="max-h-64 space-y-2 overflow-y-auto custom-scrollbar">
@@ -1182,7 +1182,7 @@ function FilterChipsRow({ groups, value, onRemoveOption, onClearAll }: FilterChi
             </button>
 
             {morePopoverOpen && (
-              <div className="absolute z-20 right-0 mt-1 w-64 max-h-80 overflow-y-auto custom-scrollbar bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-slate-200/70 dark:border-slate-700/70 rounded-xl shadow-lg p-2 animate-fade-in">
+              <div className="absolute z-50 right-0 mt-1 w-64 max-h-80 overflow-y-auto custom-scrollbar bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-slate-200/70 dark:border-slate-700/70 rounded-xl shadow-lg p-2 animate-fade-in">
                 <div className="space-y-2.5">
                   {hiddenGroups.map(group => (
                     <div key={group.groupKey}>

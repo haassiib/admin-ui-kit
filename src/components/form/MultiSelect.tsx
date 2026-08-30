@@ -108,7 +108,7 @@ export default function MultiSelect({
       </button>
 
       {open && (
-        <div className="absolute z-30 mt-1 w-full panel p-2 max-h-72 overflow-y-auto custom-scrollbar">
+        <div className="absolute z-50 mt-1 w-full panel p-2 max-h-72 overflow-y-auto custom-scrollbar">
           {searchable && options.length > 6 && (
             <div className="relative mb-2">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />

@@ -119,7 +119,7 @@ export default function MonthPicker({
       </button>
 
       {isOpen && !disabled && (
-        <div className="absolute top-full right-0 mt-2 origin-top-right bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-gray-200/70 dark:border-gray-700/70 rounded-2xl shadow-xl z-30 p-4 w-72 animate-scale-in">
+        <div className="absolute z-50 top-full right-0 mt-2 origin-top-right bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-gray-200/70 dark:border-gray-700/70 rounded-2xl shadow-xl z-30 p-4 w-72 animate-scale-in">
           <MonthGrid
             year={viewYear}
             selectedYear={parsed?.year ?? -1}

@@ -72,8 +72,25 @@ body {
      adjacent. */
   .panel-solid {
     @apply bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+  }
+  /* TWO classes, deliberately.
+     `.panel` sets `backdrop-filter` through Tailwind's utility, and a
+     single-class `.panel-solid { backdrop-filter: none }` did NOT reliably win
+     the cascade — the computed value stayed `blur(24px)`. That is not just a
+     cosmetic miss: `backdrop-filter` creates a STACKING CONTEXT, so every card
+     became one, and a dropdown opened inside a card was trapped in it. The card
+     itself has `z-index: auto`, so a later sibling card painted straight over
+     the open menu, which reads as "the dropdown is behind the next section".
+     Raising the specificity to two classes makes the override unconditional. */
+  .panel.panel-solid {
+    /* Tailwind's own reset utility, NOT a hand-written
+       `backdrop-filter: none; -webkit-backdrop-filter: none` pair. The build's
+       CSS minifier treats those two as a prefix pair and keeps only one — it
+       kept the `-webkit-` half, so the unprefixed `backdrop-filter: blur()`
+       from `.panel` survived and the stacking context with it. Going through
+       the utility resets the same custom properties `.panel` set, so the two
+       cannot disagree. */
+    @apply backdrop-filter-none;
   }
   .panel-title {
     @apply text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400;
@@ -155,6 +172,23 @@ body {
            disabled:opacity-50 transition-colors;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Z-INDEX SCALE. Three bands, and the gaps between them are the point:
+
+     1-20    table chrome — a frozen column (1), a sticky header (10), and the
+             header cell of a frozen column, which is sticky on both axes (20).
+     50      in-flow popovers — every dropdown, calendar and filter panel that
+             positions itself absolutely inside its trigger.
+     200     portalled overlays — Tooltip and ConfirmPopover, which escape to
+             <body> and must clear a Drawer's own backdrop.
+
+   Popovers used to be scattered across 10, 20, 30 and 50, which put DatePicker
+   level with a sticky `<th>` and CombinedFilterDropdown level with a frozen
+   header cell. On a tie the later element in the document wins, so a menu opened
+   above a table disappeared behind its header. One band for all of them removes
+   the whole category.
+--------------------------------------------------------------------------- */
 
 /* ---------------------------------------------------------------------------
    ROW DENSITY (Appearance -> Density).

@@ -94,17 +94,30 @@ and no state library.
 
 ## Two things worth knowing before you build on it
 
-**Popovers and clipping.** Only four components render through a portal —
-`Tooltip`, `ConfirmPopover`, `Drawer` and `Modal`. Every other dropdown, calendar
-and filter panel positions itself *absolutely* inside its trigger, so a card,
-table shell or panel with `overflow-hidden` or `overflow-x-auto` around one of
-them will clip its popover: the menu opens, and is painted away. Either drop the
-clip, or use one of the four portalled components.
+**Popovers: two ways to lose one.** Only four components render through a portal
+— `Tooltip`, `ConfirmPopover`, `Drawer` and `Modal`. Every other dropdown,
+calendar and filter panel positions itself *absolutely* inside its trigger, which
+leaves it exposed to both of these:
+
+- **Clipping.** A card, table shell or panel with `overflow-hidden` or
+  `overflow-x-auto` around it cuts the popover's box away — the menu opens and is
+  painted outside the visible area.
+- **Stacking.** An ancestor that creates a stacking context traps the popover's
+  `z-index` inside it, and a *later sibling* then paints over the open menu.
+  `backdrop-filter` alone is enough to create one, which is why `.panel`
+  (frosted) does and `.panel panel-solid` deliberately does not. Wrap a popover
+  in a frosted panel and it will disappear behind whatever follows it.
+
+The z-index bands are documented at the top of the density section in
+`globals.css`: **1–20** table chrome, **50** in-flow popovers, **200** portalled
+overlays. Keep new popovers at 50 — the gaps exist so a menu opened over a table
+clears its sticky header.
 
 `npm run check:popovers` drives all fifteen in a real browser, opens them, and
-measures how much of each popover survives its clipping ancestors. This class of
-bug is invisible to `tsc` and to `next build` — both stay green while the
-popovers are broken.
+checks BOTH: it intersects every clipping ancestor's rect to measure what
+survives, and hit-tests five points with `elementFromPoint` to confirm nothing is
+painted on top. Neither failure is visible to `tsc` or `next build` — both stay
+green throughout.
 
 **Fill by growing, not by nesting a scroller.** For the same reason, `AppShell`
 keeps `<main>` as its single scroll container and fills space with
