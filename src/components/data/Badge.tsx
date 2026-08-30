@@ -27,7 +27,11 @@ export default function Badge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ring-inset',
+        // `leading-none` is load-bearing, not tidying. The density rules set a
+        // line-height of 32-48px on every table cell, and an inline-flex badge
+        // inherits it — which stretches the pill into an oval the moment one is
+        // used inside a table, which is most of the time.
+        'inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold leading-none ring-1 ring-inset',
         TONE[tone],
         className,
       )}
