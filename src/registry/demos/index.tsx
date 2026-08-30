@@ -58,7 +58,6 @@ import Badge from '@/components/data/Badge';
 import KpiTile from '@/components/data/KpiTile';
 import Progress from '@/components/data/Progress';
 import RankedBars from '@/components/data/RankedBars';
-import RankedTable from '@/components/data/RankedTable';
 import RetentionChart from '@/components/data/RetentionChart';
 import Skeleton from '@/components/data/Skeleton';
 import StatusBar from '@/components/data/StatusBar';
@@ -528,7 +527,6 @@ export function KpiTileDemo() {
   );
 }
 
-export function RankedTableDemo() { return <RankedTable rows={RANKED} />; }
 export function RankedBarsDemo() { return <RankedBars rows={RANKED} />; }
 export function TrendChartDemo() { return <TrendChart trend={TREND} />; }
 export function RetentionChartDemo() { return <RetentionChart trend={RETENTION} />; }

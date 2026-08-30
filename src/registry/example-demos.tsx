@@ -722,6 +722,46 @@ function DataTableSelection() {
   );
 }
 
+/**
+ * The ranked view that used to be its own `RankedTable` component — a fixed
+ * six-column table with a hard-coded heading and no sorting. It is a handful of
+ * column definitions here, and it sorts, selects and pages for free.
+ */
+const RANKED_ROWS = [
+  { id: 1, rank: 1, name: 'Engineering', spend: 184_320, count: 1_204, roi: 31.4 },
+  { id: 2, rank: 2, name: 'Research', spend: 152_880, count: 986, roi: 18.2 },
+  { id: 3, rank: 3, name: 'Design', spend: 98_400, count: 610, roi: -4.7 },
+  { id: 4, rank: 4, name: 'Support', spend: 74_150, count: 402, roi: 9.1 },
+  { id: 5, rank: 5, name: 'Operations', spend: 41_900, count: 233, roi: 22.8 },
+];
+
+function DataTableRanked() {
+  type Row = (typeof RANKED_ROWS)[number];
+  return (
+    <DataTable
+      rows={RANKED_ROWS}
+      getRowId={(r: Row) => r.id}
+      columns={[
+        { key: 'rank', header: '#', width: '3rem', cell: (r: Row) => <span className="tabular-nums text-slate-400">{r.rank}</span> },
+        { key: 'name', header: 'Team', cell: (r: Row) => <span className="font-medium text-slate-700 dark:text-slate-200">{r.name}</span>, sortValue: (r: Row) => r.name },
+        { key: 'spend', header: 'Spend', align: 'right', cell: (r: Row) => <span className="tabular-nums">${r.spend.toLocaleString()}</span>, sortValue: (r: Row) => r.spend },
+        { key: 'count', header: 'Signups', align: 'right', cell: (r: Row) => <span className="tabular-nums">{r.count.toLocaleString()}</span>, sortValue: (r: Row) => r.count },
+        {
+          key: 'roi', header: 'ROI', align: 'right', sortValue: (r: Row) => r.roi,
+          // Tinting by sign is the one thing worth carrying over from the old
+          // component: a negative return that reads like every other number is
+          // the number people miss.
+          cell: (r: Row) => (
+            <span className={`tabular-nums font-medium ${r.roi >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+              {r.roi.toFixed(1)}%
+            </span>
+          ),
+        },
+      ]}
+    />
+  );
+}
+
 function DataTableEmpty() {
   return <DataTable rows={[]} columns={MINI_COLUMNS} getRowId={(p: { id: number }) => p.id} emptyTitle="No members yet" emptyHint="Invite someone to get started." />;
 }
@@ -749,7 +789,7 @@ export const EXAMPLE_DEMOS: Record<string, Record<string, React.ComponentType>> 
   },
   'tooltip': { 'placement': TooltipPlacement, 'appearance': TooltipAppearance, 'info': TooltipInfo },
   'progress': { 'basic': ProgressBasic, 'clamped': ProgressClamped },
-  'data-table': { 'basic': DataTableBasic, 'selection': DataTableSelection, 'empty': DataTableEmpty },
+  'data-table': { 'basic': DataTableBasic, 'selection': DataTableSelection, 'ranked': DataTableRanked, 'empty': DataTableEmpty },
 };
 
 export type Example = ExampleMeta & { Demo: React.ComponentType };

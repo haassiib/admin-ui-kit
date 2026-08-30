@@ -81,7 +81,6 @@ export { default as KpiTile } from './data/KpiTile';
 export { Delta } from './data/KpiTile';
 export { default as Progress } from './data/Progress';
 export { default as RankedBars } from './data/RankedBars';
-export { default as RankedTable } from './data/RankedTable';
 export { default as RetentionChart } from './data/RetentionChart';
 export { default as Skeleton } from './data/Skeleton';
 export { default as StatusBar } from './data/StatusBar';

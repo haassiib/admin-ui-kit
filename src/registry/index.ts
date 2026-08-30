@@ -104,7 +104,6 @@ export const ENTRIES: Entry[] = [
 
   // ---- Data display ----
   data('KpiTile', 'A KPI card with tone, delta arrow and optional subtitle.'),
-  data('RankedTable', 'Ranked table of items by value, with share and delta.'),
   data('RankedBars', 'The same ranking as horizontal bars, for short named lists.'),
   data('TrendChart', 'Multi-series daily line chart.'),
   data('RetentionChart', 'Monthly rate chart that leaves null periods as gaps rather than zeroes.'),

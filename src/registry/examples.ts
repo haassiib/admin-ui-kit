@@ -87,6 +87,7 @@ export const EXAMPLE_META: Record<string, ExampleMeta[]> = {
   'data-table': [
       { id: 'basic', title: 'Basic', description: 'Columns are data. Give a column a `sortValue` to make it sortable; omit it to leave the column static.' },
       { id: 'selection', title: 'Selection', description: '`selectable` adds the checkbox column. Select-all applies to the current page only.' },
+      { id: 'ranked', title: 'Ranked', description: 'A rank column, right-aligned numerics and a value tinted by sign. This used to be a separate RankedTable component with fixed columns and no sorting; as column definitions it sorts, selects and pages for free.' },
       { id: 'empty', title: 'Empty', description: 'With no rows the table renders its empty state instead of a bare header.' },
   ],
 };

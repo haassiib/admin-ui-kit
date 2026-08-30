@@ -44,7 +44,6 @@ export const DEMOS: Record<string, React.ComponentType> = {
   'save-all-bar': D.SaveAllBarDemo,
   'account-cell': D.AccountCellDemo,
   'kpi-tile': D.KpiTileDemo,
-  'ranked-table': D.RankedTableDemo,
   'ranked-bars': D.RankedBarsDemo,
   'trend-chart': D.TrendChartDemo,
   'retention-chart': D.RetentionChartDemo,
