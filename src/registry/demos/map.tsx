@@ -6,7 +6,7 @@
 import * as D from './index';
 
 export const DEMOS: Record<string, React.ComponentType> = {
-  'app-shell': D.AppShellDemo,
+  'layout': D.LayoutDemo,
   'nav-menu': D.NavMenuDemo,
   'sidebar': D.SidebarDemo,
   'topbar': D.TopbarDemo,
@@ -39,7 +39,7 @@ export const DEMOS: Record<string, React.ComponentType> = {
   'pasteable-grid': D.PasteableGridDemo,
   'editable-cell': D.EditableCellDemo,
   'pagination': D.PaginationDemo,
-  'url-pagination': D.UrlPaginationDemo,
+  'paginator': D.PaginatorDemo,
   'sortable-th': D.SortableThDemo,
   'sortable-list': D.SortableListDemo,
   'save-all-bar': D.SaveAllBarDemo,

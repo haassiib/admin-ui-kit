@@ -7,8 +7,8 @@ import { cn } from '@/lib/cn';
 export type SidebarPosition = 'left' | 'right' | 'top' | 'bottom';
 
 /**
- * The dashboard frame: a navigation region beside or above the content, a
- * header, and a scrolling content area.
+ * The page frame: a navigation region beside or above the content, a header,
+ * and a scrolling content area.
  *
  * Two decisions carry the whole thing.
  *
@@ -24,7 +24,7 @@ export type SidebarPosition = 'left' | 'right' | 'top' | 'bottom';
  * shell that requires a provider is a shell you have to wire up before you can
  * see it work.
  */
-export default function AppShell({
+export default function Layout({
   sidebar,
   brand,
   actions,

@@ -16,6 +16,16 @@ export type Entry = {
   /** Path within this package — also what the code view reads. */
   path: string;
   blurb: string;
+  /**
+   * Which function the props table should document, when it is not the one
+   * named after the component.
+   *
+   * A compound component has no `Paginator(props)` to read — the props live on
+   * `Paginator.Root`. Without this the parser finds nothing and the page shows
+   * an empty table, which reads as "this takes no props" rather than "look
+   * somewhere else".
+   */
+  propsOf?: string;
 };
 
 export const CATEGORY_LABEL: Record<Category, string> = {
@@ -29,13 +39,16 @@ export const CATEGORY_LABEL: Record<Category, string> = {
 
 export const CATEGORY_ORDER: Category[] = ['layout', 'form', 'table', 'data', 'overlay', 'media'];
 
-const e = (category: Category, dir: string) => (name: string, blurb: string, file = `${name}.tsx`): Entry => ({
-  slug: name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase(),
-  name,
-  category,
-  path: `src/components/${dir}/${file}`,
-  blurb,
-});
+const e =
+  (category: Category, dir: string) =>
+  (name: string, blurb: string, opts: { file?: string; propsOf?: string } = {}): Entry => ({
+    slug: name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase(),
+    name,
+    category,
+    path: `src/components/${dir}/${opts.file ?? `${name}.tsx`}`,
+    blurb,
+    propsOf: opts.propsOf,
+  });
 
 const layout = e('layout', 'layout');
 const overlay = e('overlay', 'overlay');
@@ -46,7 +59,7 @@ const media = e('media', 'media');
 
 export const ENTRIES: Entry[] = [
   // ---- Layout & shell ----
-  layout('AppShell', 'The dashboard frame: sidebar, header and a scrolling content area, with a mobile off-canvas.'),
+  layout('Layout', 'The page frame: navigation, header and a scrolling content area. Navigation sits left, right, top or bottom.'),
   layout('NavMenu', 'Documentation-style side menu — plain text links under uppercase section headings, with an optional filter.'),
   layout('Sidebar', 'Collapsible nav over a menu tree, nesting to any depth, with a mobile off-canvas and an icon-rail mode.'),
   layout('Topbar', 'Header bar composing breadcrumbs, notifications, appearance and account.'),
@@ -65,7 +78,7 @@ export const ENTRIES: Entry[] = [
   layout('IdleLogout', 'Headless inactivity timer that calls a sign-out action.'),
 
   // ---- Form & input ----
-  form('Field', 'Label, control and error wired together — ids and ARIA included.', 'Field.tsx'),
+  form('Field', 'Label, control and error wired together — ids and ARIA included.'),
   form('Checkbox', 'Styled checkbox with label and an optional hint tooltip.'),
   form('ToggleSwitch', 'Labelled on/off switch.'),
   form('PickList', 'Two lists with transfer controls: pick from a set, then order what you picked.'),
@@ -84,7 +97,7 @@ export const ENTRIES: Entry[] = [
   table('PasteableGrid', 'Spreadsheet-style grid: paste a block of cells, map columns by header alias, keyboard navigation, column summaries.'),
   table('EditableCell', 'Click-to-edit cell with dirty state, commit/cancel keys and a no-jump overlay input.'),
   table('Pagination', 'Numbered page links with ellipsis gaps, or a page-number input. Renders as a bar, a pill, or a floating pill.'),
-  table('UrlPagination', 'The same control, driven by the query string instead of callbacks.'),
+  table('Paginator', 'The same paginator, composed part by part: arrange First, Prev, Pages, Next, Last and your own content in any order.', { propsOf: 'Root' }),
   table('SortableTh', 'Header cell that cycles asc → desc → unsorted.'),
   table('SortableList', 'Drag-to-reorder list, generic over the item type, with an explicit grip.'),
   table('SaveAllBar', 'Sticky bar shown while rows are dirty: save all or discard all.'),
@@ -102,7 +115,7 @@ export const ENTRIES: Entry[] = [
   data('Badge', 'Status pill in five tones, with an optional state dot.'),
   data('Progress', 'Determinate bar with a clamped value and optional label.'),
   data('Skeleton', 'Loading placeholder in text, circle and rect shapes.'),
-  data('chartTheme', 'Hook returning chart axis, grid and tooltip colours for the active scheme, plus number formatters.', 'chartTheme.ts'),
+  data('chartTheme', 'Hook returning chart axis, grid and tooltip colours for the active scheme, plus number formatters.', { file: 'chartTheme.ts' }),
 
   // ---- Overlays ----
   overlay('Modal', 'Centred dialog in four sizes; closes on backdrop and Escape.'),
@@ -117,3 +130,25 @@ export const ENTRIES: Entry[] = [
 ];
 
 export const BY_SLUG = new Map(ENTRIES.map((x) => [x.slug, x]));
+
+/**
+ * Acronyms that must not be split or title-cased into nonsense.
+ * `KpiTile` -> "KPI Tile", not "Kpi Tile"; `SortableTh` -> "Sortable TH".
+ */
+const ACRONYMS: Record<string, string> = { Kpi: 'KPI', Th: 'TH', Url: 'URL', Ui: 'UI' };
+
+/**
+ * A component's name as READING MATTER — "Data Table", not "DataTable".
+ *
+ * Used in the navigation, where fifty-eight run-together identifiers are a wall
+ * of camel case that the eye has to decode word by word. NOT used for the page
+ * heading or the import line: there the PascalCase name is the thing you
+ * actually type, and prettifying it would be a lie about the API.
+ */
+export function displayName(name: string): string {
+  return name
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .split(' ')
+    .map((word) => ACRONYMS[word] ?? word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}

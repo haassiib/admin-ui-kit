@@ -4,14 +4,14 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Boxes } from 'lucide-react';
 
-import AppShell from '@/components/layout/AppShell';
+import Layout from '@/components/layout/Layout';
 import NavMenu, { type NavSection } from '@/components/layout/NavMenu';
 import ThemeSettings from '@/components/layout/ThemeSettings';
 import Badge from '@/components/data/Badge';
 
 /**
- * The gallery's own chrome, built from the library's `AppShell` and `NavMenu` —
- * so the shell the docs run inside is the same shell the docs document.
+ * The gallery's own chrome, built from the library's `Layout` and `NavMenu` — so
+ * the frame the docs run inside is the same frame the docs document.
  */
 export default function DashShell({
   sections,
@@ -23,7 +23,7 @@ export default function DashShell({
   const pathname = usePathname();
 
   return (
-    <AppShell
+    <Layout
       brand={
         <Link href="/" className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
           <Boxes className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
@@ -39,6 +39,6 @@ export default function DashShell({
       sidebar={<NavMenu sections={sections} activeHref={pathname} filterable filterPlaceholder="Filter components…" />}
     >
       {children}
-    </AppShell>
+    </Layout>
   );
 }

@@ -9,14 +9,14 @@
 
 // layout
 export { default as Alert } from './layout/Alert';
-export { default as AppShell } from './layout/AppShell';
-export type { SidebarPosition } from './layout/AppShell';
 export { default as Avatar } from './layout/Avatar';
 export { default as Breadcrumbs } from './layout/Breadcrumbs';
 export { default as Button } from './layout/Button';
 export { default as Card } from './layout/Card';
 export { default as EmptyState } from './layout/EmptyState';
 export { default as IdleLogout } from './layout/IdleLogout';
+export { default as Layout } from './layout/Layout';
+export type { SidebarPosition } from './layout/Layout';
 export { default as MenuIcon } from './layout/MenuIcon';
 export { ICON_MAP, ICON_NAMES, resolveMenuIcon } from './layout/MenuIcon';
 export { default as NavMenu } from './layout/NavMenu';
@@ -66,12 +66,12 @@ export type { Column } from './table/DataTable';
 export { default as EditableCell } from './table/EditableCell';
 export { default as Pagination } from './table/Pagination';
 export type { PaginationNavigation, PaginationVariant } from './table/Pagination';
+export { default as Paginator } from './table/Paginator';
 export { default as PasteableGrid } from './table/PasteableGrid';
 export type { PasteableGridColumn, PasteableGridHandle } from './table/PasteableGrid';
 export { default as SaveAllBar } from './table/SaveAllBar';
 export { default as SortableList } from './table/SortableList';
 export { default as SortableTh } from './table/SortableTh';
-export { default as UrlPagination } from './table/UrlPagination';
 
 // data
 export { default as ActivityFeed } from './data/ActivityFeed';

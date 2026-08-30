@@ -7,7 +7,7 @@ import { useRef, useState } from 'react';
 import { Coins, RefreshCw, TrendingUp, Users, Zap } from 'lucide-react';
 
 import Alert from '@/components/layout/Alert';
-import AppShell from '@/components/layout/AppShell';
+import Layout from '@/components/layout/Layout';
 import NavMenu from '@/components/layout/NavMenu';
 import Avatar from '@/components/layout/Avatar';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
@@ -48,11 +48,11 @@ import AccountCell from '@/components/table/AccountCell';
 import DataTable, { type Column } from '@/components/table/DataTable';
 import EditableCell from '@/components/table/EditableCell';
 import Pagination from '@/components/table/Pagination';
+import Paginator from '@/components/table/Paginator';
 import PasteableGrid from '@/components/table/PasteableGrid';
 import SaveAllBar from '@/components/table/SaveAllBar';
 import SortableList from '@/components/table/SortableList';
 import SortableTh from '@/components/table/SortableTh';
-import UrlPagination from '@/components/table/UrlPagination';
 
 import ActivityFeed from '@/components/data/ActivityFeed';
 import Badge from '@/components/data/Badge';
@@ -467,10 +467,6 @@ export function PaginationDemo() {
   );
 }
 
-export function UrlPaginationDemo() {
-  return <UrlPagination totalItems={1204} page={3} pageSize={25} itemType="members" />;
-}
-
 export function SortableThDemo() {
   const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>({ key: 'name', dir: 'asc' });
   return (
@@ -725,13 +721,13 @@ export function MediaLibraryDemo() {
 
 /* ------------------------------------------------------- shell and menu --- */
 
-export function AppShellDemo() {
+export function LayoutDemo() {
   return (
     <div className="h-[28rem] overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
       {/* Scaled down inside a frame: the real thing is `h-screen`, which would
           take over the page it is being previewed on. */}
       <div className="h-full [&>div]:h-full">
-        <AppShell
+        <Layout
           brand={<span className="text-sm font-bold text-slate-900 dark:text-white">Acme</span>}
           actions={<Badge tone="info">Pro</Badge>}
           sidebarWidth="w-52"
@@ -749,7 +745,7 @@ export function AppShellDemo() {
           <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
             Page content goes here. Narrow the window to see the sidebar collapse to a drawer.
           </p>
-        </AppShell>
+        </Layout>
       </div>
     </div>
   );
@@ -794,5 +790,23 @@ export function PickListDemo() {
       targetHeader="Reviewers"
       filterable
     />
+  );
+}
+
+export function PaginatorDemo() {
+  const [page, setPage] = useState(4);
+  return (
+    <div className="rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-700">
+      <Paginator.Root total={480} itemsPerPage={10} page={page} onPageChange={setPage}>
+        <Paginator.Content>
+          <Paginator.First />
+          <Paginator.Prev />
+          <Paginator.Pages />
+          <Paginator.Next />
+          <Paginator.Last />
+          <Paginator.Report className="ml-2" />
+        </Paginator.Content>
+      </Paginator.Root>
+    </div>
   );
 }

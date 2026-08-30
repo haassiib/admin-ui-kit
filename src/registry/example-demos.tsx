@@ -15,12 +15,14 @@
 import { useRef, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import Splitter from '@/components/layout/Splitter';
-import AppShell, { type SidebarPosition } from '@/components/layout/AppShell';
+import Layout, { type SidebarPosition } from '@/components/layout/Layout';
 import NavMenu from '@/components/layout/NavMenu';
 import Button from '@/components/layout/Button';
 import Badge from '@/components/data/Badge';
 import Alert from '@/components/layout/Alert';
 import Pagination from '@/components/table/Pagination';
+import Paginator from '@/components/table/Paginator';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Tooltip, { InfoTooltip } from '@/components/overlay/Tooltip';
 import Progress from '@/components/data/Progress';
 import DataTable from '@/components/table/DataTable';
@@ -129,7 +131,7 @@ function SplitterResizeEvents() {
   );
 }
 
-/* ------------------------------------------------------------- AppShell --- */
+/* --------------------------------------------------------------- Layout --- */
 
 const SHELL_SECTIONS = [
   { label: 'Workspace', items: [{ label: 'Overview', href: '/' }, { label: 'Members', href: '/members' }] },
@@ -145,7 +147,7 @@ function ShellFrame({ position }: { position: SidebarPosition }) {
   return (
     <div className="h-[26rem] overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
       <div className="h-full [&>div]:h-full">
-        <AppShell
+        <Layout
           sidebarPosition={position}
           sidebarWidth="w-48"
           brand={<span className="text-sm font-bold text-slate-900 dark:text-white">Acme</span>}
@@ -163,16 +165,16 @@ function ShellFrame({ position }: { position: SidebarPosition }) {
           <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
             Navigation is on the <strong>{position}</strong>.
           </p>
-        </AppShell>
+        </Layout>
       </div>
     </div>
   );
 }
 
-function AppShellLeft() { return <ShellFrame position="left" />; }
-function AppShellRight() { return <ShellFrame position="right" />; }
-function AppShellTop() { return <ShellFrame position="top" />; }
-function AppShellBottom() { return <ShellFrame position="bottom" />; }
+function LayoutLeft() { return <ShellFrame position="left" />; }
+function LayoutRight() { return <ShellFrame position="right" />; }
+function LayoutTop() { return <ShellFrame position="top" />; }
+function LayoutBottom() { return <ShellFrame position="bottom" />; }
 
 /* -------------------------------------------------------------- NavMenu --- */
 
@@ -254,6 +256,121 @@ function CombinedFilterDropdownSummary() {
 function CombinedFilterDropdownEmpty() {
   const bound = useSeededFilter({ region: [], team: [] });
   return <CombinedFilterDropdown {...bound} />;
+}
+
+/* ------------------------------------------------------------ Paginator --- */
+
+const Framed = ({ children }: { children: React.ReactNode }) => (
+  <div className="rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-700">{children}</div>
+);
+
+function PaginatorBasic() {
+  const [page, setPage] = useState(4);
+  return (
+    <Framed>
+      <Paginator.Root total={480} itemsPerPage={10} page={page} onPageChange={setPage}>
+        <Paginator.Content>
+          <Paginator.First />
+          <Paginator.Prev />
+          <Paginator.Pages />
+          <Paginator.Next />
+          <Paginator.Last />
+        </Paginator.Content>
+      </Paginator.Root>
+    </Framed>
+  );
+}
+
+function PaginatorTemplate() {
+  const [page, setPage] = useState(4);
+  return (
+    <Framed>
+      <Paginator.Root total={480} itemsPerPage={10} page={page} onPageChange={setPage}>
+        <Paginator.Content className="justify-between">
+          <span className="flex items-center gap-1">
+            <Paginator.First />
+            <Paginator.Prev />
+          </span>
+          {/* Anything can sit between the parts — this is the point of the API. */}
+          <span className="text-slate-500 dark:text-slate-400">Page {page} of 48</span>
+          <span className="flex items-center gap-1">
+            <Paginator.Next />
+            <Paginator.Last />
+          </span>
+        </Paginator.Content>
+      </Paginator.Root>
+    </Framed>
+  );
+}
+
+function PaginatorCustomText() {
+  const [page, setPage] = useState(4);
+  return (
+    <Framed>
+      <Paginator.Root total={480} itemsPerPage={10} page={page} onPageChange={setPage}>
+        <Paginator.Content>
+          <Paginator.Prev>← Newer</Paginator.Prev>
+          <Paginator.Report>
+            {({ rangeStart, rangeEnd, total }) => (
+              <span className="text-slate-500 dark:text-slate-400">
+                Showing {rangeStart}–{rangeEnd} of {total} results
+              </span>
+            )}
+          </Paginator.Report>
+          <Paginator.Next>Older →</Paginator.Next>
+        </Paginator.Content>
+      </Paginator.Root>
+    </Framed>
+  );
+}
+
+function PaginatorWithInput() {
+  const [page, setPage] = useState(4);
+  const [draft, setDraft] = useState('4');
+  return (
+    <Framed>
+      <Paginator.Root total={480} itemsPerPage={10} page={page} onPageChange={(n) => { setPage(n); setDraft(String(n)); }}>
+        <Paginator.Content>
+          <Paginator.Prev />
+          <label className="flex items-center gap-1.5">
+            Go to
+            <input
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key !== 'Enter') return;
+                const n = Number.parseInt(draft, 10);
+                if (!Number.isNaN(n)) setPage(Math.min(Math.max(n, 1), 48));
+              }}
+              aria-label="Go to page"
+              className="w-12 rounded-md border border-slate-200 bg-transparent px-1 py-0.5 text-center dark:border-slate-700"
+            />
+            <span className="text-slate-400">of 48</span>
+          </label>
+          <Paginator.Next />
+        </Paginator.Content>
+      </Paginator.Root>
+    </Framed>
+  );
+}
+
+function PaginatorCustomPages() {
+  const [page, setPage] = useState(4);
+  return (
+    <Framed>
+      <Paginator.Root total={480} itemsPerPage={10} page={page} onPageChange={setPage} siblings={2}>
+        <Paginator.Content>
+          <Paginator.Pages>
+            {(n) => (
+              <Paginator.Page page={n} className="rounded-full">
+                {String(n).padStart(2, '0')}
+              </Paginator.Page>
+            )}
+          </Paginator.Pages>
+        </Paginator.Content>
+      </Paginator.Root>
+    </Framed>
+  );
 }
 
 /* --------------------------------------------------------------- Drawer --- */
@@ -465,6 +582,45 @@ function PaginationInput() { return <Boxed><Pagination {...usePager()} navigatio
 function PaginationMinimal() {
   return <Boxed><Pagination {...usePager()} showRange={false} showPageSize={false} /></Boxed>;
 }
+/**
+ * Driving the paginator from the query string.
+ *
+ * This used to be a separate `UrlPagination` component, which was eight lines of
+ * wiring around this one — so it is an example instead. In a copy-in library a
+ * pattern you can read and paste beats a component you have to import.
+ *
+ * `scroll: false` matters: without it Next jumps to the top of the document on
+ * every page change, which on a long table means losing your place each click.
+ */
+function PaginationUrl() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
+
+  const page = Number(params.get('page') ?? 1);
+  const size = Number(params.get('pageSize') ?? 25);
+
+  const push = (next: Record<string, string>) => {
+    const q = new URLSearchParams(params.toString());
+    for (const [k, v] of Object.entries(next)) q.set(k, v);
+    router.push(`${pathname}?${q.toString()}`, { scroll: false });
+  };
+
+  return (
+    <Boxed>
+      <Pagination
+        totalItems={1204}
+        itemsPerPage={size}
+        currentPage={page}
+        onPageChange={(p) => push({ page: String(p) })}
+        // A bigger page can put you past the end, so a size change resets to 1.
+        onItemsPerPageChange={(n) => push({ pageSize: String(n), page: '1' })}
+        itemType="members"
+      />
+    </Boxed>
+  );
+}
+
 function PaginationPill() { return <Pagination {...usePager()} variant="pill" />; }
 function PaginationFloating() { return <Pagination {...usePager()} variant="floating" />; }
 
@@ -555,9 +711,13 @@ function DataTableEmpty() {
 
 /** slug -> example id -> component. Joined to `EXAMPLE_META` by id. */
 export const EXAMPLE_DEMOS: Record<string, Record<string, React.ComponentType>> = {
+  'paginator': {
+    'basic': PaginatorBasic, 'template': PaginatorTemplate, 'custom-text': PaginatorCustomText,
+    'with-input': PaginatorWithInput, 'custom-pages': PaginatorCustomPages,
+  },
   'drawer': { 'basic': DrawerBasic, 'anchored': DrawerAnchored, 'no-backdrop': DrawerNoBackdrop, 'header-actions': DrawerHeaderActions },
   'combined-filter-dropdown': { 'chips': CombinedFilterDropdownChips, 'summary': CombinedFilterDropdownSummary, 'empty': CombinedFilterDropdownEmpty },
-  'app-shell': { 'left': AppShellLeft, 'right': AppShellRight, 'top': AppShellTop, 'bottom': AppShellBottom },
+  'layout': { 'left': LayoutLeft, 'right': LayoutRight, 'top': LayoutTop, 'bottom': LayoutBottom },
   'nav-menu': { 'vertical': NavMenuVertical, 'horizontal': NavMenuHorizontal, 'filterable': NavMenuFilterable },
   'splitter': { 'basic': SplitterBasic, 'vertical': SplitterVertical, 'size': SplitterSize, 'min-max': SplitterMinMax, 'nested': SplitterNested, 'resize-events': SplitterResizeEvents },
   'button': { 'variants': ButtonVariants, 'sizes': ButtonSizes, 'loading': ButtonLoading },
@@ -566,6 +726,7 @@ export const EXAMPLE_DEMOS: Record<string, Record<string, React.ComponentType>> 
   'pagination': {
     'basic': PaginationBasic, 'siblings': PaginationSiblings, 'edges': PaginationEdges,
     'no-ellipsis': PaginationNoEllipsis, 'input': PaginationInput, 'minimal': PaginationMinimal,
+    'url': PaginationUrl,
     'pill': PaginationPill, 'floating': PaginationFloating,
   },
   'tooltip': { 'placement': TooltipPlacement, 'appearance': TooltipAppearance, 'info': TooltipInfo },

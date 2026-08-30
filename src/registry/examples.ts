@@ -15,6 +15,13 @@
 export type ExampleMeta = { id: string; title: string; description?: string };
 
 export const EXAMPLE_META: Record<string, ExampleMeta[]> = {
+  'paginator': [
+      { id: 'basic', title: 'Basic', description: 'The parts in their conventional order. Every one reads its state from the Root, so none of them takes props.' },
+      { id: 'template', title: 'Template', description: 'Arrange the parts however the layout needs, and put your own content between them — steppers pushed to the edges with a label in the middle.' },
+      { id: 'custom-text', title: 'Custom text', description: 'The steppers take children, so an icon becomes a word. `Paginator.Report` is a render prop over the current numbers.' },
+      { id: 'with-input', title: 'With an input', description: 'A jump-to-page field is just another child. The Root owns the clamping, so the field only has to parse.' },
+      { id: 'custom-pages', title: 'Custom page links', description: '`Paginator.Pages` takes a render prop for one link, and inserts the ellipsis gaps itself. Here with zero-padded labels, pill shapes, and two siblings.' },
+  ],
   'drawer': [
       { id: 'basic', title: 'Basic', description: 'A full-height panel on the right, over a dimmed backdrop. Drag its left edge to resize; Escape, the backdrop and the close button all dismiss it.' },
       { id: 'anchored', title: 'Anchored to an element', description: '`anchorRef` fits the panel to an element instead of the viewport — the card whose content it belongs to. Point it at the CARD, never at the button that opens it: it mirrors the element\'s top, height and right edge, so a 28px button yields a 28px drawer.' },
@@ -26,7 +33,7 @@ export const EXAMPLE_META: Record<string, ExampleMeta[]> = {
       { id: 'summary', title: 'Summary', description: 'One fixed-height line stating what the data is scoped to ("Europe · 2 teams"), which opens a popover holding the same removable chips. The height never changes with the selection, so a crowded toolbar cannot reflow.' },
       { id: 'empty', title: 'Nothing selected', description: 'With an empty selection both modes collapse to just the trigger — there is no chip row or summary line to show.' },
   ],
-  'app-shell': [
+  'layout': [
       { id: 'left', title: 'Left', description: 'The default. A vertical rail beside the content, collapsing to an off-canvas drawer below the lg breakpoint.' },
       { id: 'right', title: 'Right', description: 'The same rail on the other edge — the border and the drawer both flip, and the header controls swap sides with them.' },
       { id: 'top', title: 'Top', description: 'A horizontal bar that absorbs the header: brand, navigation and actions share one row rather than stacking two rows of chrome.' },
@@ -65,6 +72,7 @@ export const EXAMPLE_META: Record<string, ExampleMeta[]> = {
       { id: 'no-ellipsis', title: 'Without gaps', description: 'With `showEllipsis={false}` every page is listed and `edges` is ignored — it only means anything relative to a gap. Fine for a set this size, unusable past a few dozen pages.' },
       { id: 'input', title: 'Page input', description: '`navigation="input"` swaps the links for a "page N of M" box. Better past a few hundred pages, where numbered links stop being a map and start being noise.' },
       { id: 'minimal', title: 'Minimal', description: 'The range line and page-size selector are both optional. Turning them off leaves just the navigation.' },
+      { id: 'url', title: 'Driven by the URL', description: 'Read the page from the query string and push it back on change, so a paginated view is linkable and survives a reload. This was a separate UrlPagination component; it was eight lines of wiring, so it is an example instead. Try it — the address bar updates.' },
       { id: 'pill', title: 'Pill', description: 'A centred rounded pill, in flow below the table.' },
       { id: 'floating', title: 'Floating', description: 'The same pill, fixed to the bottom of the viewport. Look at the foot of the window.' },
   ],

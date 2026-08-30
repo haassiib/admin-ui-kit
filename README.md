@@ -39,7 +39,7 @@ size, Nested, and Resize events.
 
 ## Components
 
-**Layout & shell** (17) — AppShell (nav left/right/top/bottom) · NavMenu
+**Layout & shell** (17) — Layout (nav left/right/top/bottom) · NavMenu
 (vertical/horizontal) · Sidebar · Topbar · Breadcrumbs · Splitter · Tabs · Card ·
 Button · Alert · Avatar · EmptyState · MenuIcon · UserDropdown · ThemeSettings ·
 ThemeScript · IdleLogout

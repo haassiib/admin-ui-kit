@@ -34,7 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100">
         {/* ThemeProvider drives the colour scheme and density. SidebarProvider
             is still mounted because the catalogued `Sidebar` demo needs it —
-            `AppShell` deliberately owns its own open state instead. */}
+            `Layout` deliberately owns its own open state instead. */}
         <ThemeProvider>
           <SidebarProvider>
             <DashShell sections={sections}>{children}</DashShell>

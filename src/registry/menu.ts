@@ -8,7 +8,7 @@
  */
 
 import type { NavSection } from '@/components/layout/NavMenu';
-import { CATEGORY_LABEL, CATEGORY_ORDER, ENTRIES } from './index';
+import { CATEGORY_LABEL, CATEGORY_ORDER, displayName, ENTRIES } from './index';
 
 export const BROWSE_HREF = '/';
 
@@ -22,7 +22,8 @@ export function buildGalleryMenu(): NavSection[] {
     if (items.length === 0) continue;
     sections.push({
       label: CATEGORY_LABEL[category],
-      items: items.map((e) => ({ label: e.name, href: `/preview/${e.slug}` })),
+      // Spaced for reading; the page itself keeps the real PascalCase name.
+      items: items.map((e) => ({ label: displayName(e.name), href: `/preview/${e.slug}` })),
     });
   }
 

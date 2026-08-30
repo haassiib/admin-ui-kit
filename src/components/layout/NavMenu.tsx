@@ -18,7 +18,7 @@ export type NavOrientation = 'vertical' | 'horizontal';
  * the eye reads the text anyway. Text-only rows scan faster and let a section
  * hold twenty items without becoming a wall of squares.
  *
- * `horizontal` is for a top or bottom bar (see `AppShell`'s `sidebarPosition`).
+ * `horizontal` is for a top or bottom bar (see `Layout`'s `sidebarPosition`).
  * It is not just the vertical menu turned sideways: headings shrink to inline
  * group labels, groups get a divider between them instead of vertical space, and
  * the active item is marked with an underline rather than a filled pill —
