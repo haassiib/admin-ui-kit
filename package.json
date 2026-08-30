@@ -1,0 +1,59 @@
+{
+  "name": "admin-ui-kit",
+  "version": "1.0.0",
+  "private": false,
+  "description": "55 React components for admin and dashboard interfaces - Next.js 16, React 19, Tailwind 4.",
+  "scripts": {
+    "dev": "next dev -p 3020",
+    "build": "next build",
+    "start": "next start -p 3020",
+    "typecheck": "tsc --noEmit",
+    "check:popovers": "node scripts/popover-check.mjs"
+  },
+  "dependencies": {
+    "date-fns": "^4.4.0",
+    "lucide-react": ">=1",
+    "next": "^16.3.3",
+    "react": ">=19",
+    "react-dom": ">=19",
+    "react-easy-crop": "^5.5.5",
+    "recharts": "^3.5.1",
+    "sonner": "^2.0.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "postcss": "^8.5.26",
+    "puppeteer-core": "^24.0.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.7.0"
+  },
+  "license": "MIT",
+  "keywords": [
+    "react",
+    "nextjs",
+    "tailwind",
+    "components",
+    "admin",
+    "dashboard",
+    "ui"
+  ],
+  "sideEffects": [
+    "*.css"
+  ],
+  "peerDependencies": {
+    "lucide-react": ">=1",
+    "react": ">=19",
+    "react-dom": ">=19"
+  },
+  "peerDependenciesMeta": {
+    "recharts": {
+      "optional": true
+    },
+    "react-easy-crop": {
+      "optional": true
+    }
+  }
+}

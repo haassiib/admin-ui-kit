@@ -1,0 +1,216 @@
+@import 'tailwindcss';
+
+/* Dark mode is CLASS-driven, not media-driven — carried over from both source
+   projects, where a shared VPN workstation has to keep whatever the person
+   using it chose rather than following the OS. */
+@variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+   ONE THEME: bonus-adjustment's. Indigo on slate, Inter.
+
+   marketing-stats shipped its own token pass — the whole `--color-indigo-*`
+   scale reassigned to iOS system blue, every radius rounded up, every shadow
+   softened. That is deliberately NOT carried over. Tailwind 4 compiles
+   `bg-indigo-600` to `var(--color-indigo-600)` rather than to a literal, so the
+   marketing-stats components pick up the palette below through the classes they
+   already have, with no edit to any of them.
+--------------------------------------------------------------------------- */
+@theme {
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Referenced by name from Modal/Drawer — an undefined token fails silently,
+     the element just appears with no motion. */
+  --animate-fade-in: fade-in 0.2s ease-out;
+  --animate-scale-in: scale-in 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --animate-slide-in-right: slide-in-right 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+  /* marketing-stats' login ripple. Kept because a component references it by
+     name; the timing is its own. */
+  --animate-ripple: ripple 600ms linear;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes ripple {
+  from { transform: scale(0); opacity: 0.45; }
+  to   { transform: scale(2.5); opacity: 0; }
+}
+
+html, body { height: 100%; }
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  /* Frosted-glass card: the shell sits on a gradient ground, so an opaque white
+     card reads as a patch rather than a surface. Padding is deliberately NOT
+     included — callers set their own. */
+  .panel {
+    @apply bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl
+           border border-white/60 dark:border-slate-700/60 rounded-[1rem];
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  }
+  /* The same card, made OPAQUE — for a panel that floats over page content
+     instead of sitting on the gradient ground. A translucent menu lets the
+     table rows behind it read straight through, and a translucent 1px border
+     leaks the content back in around a surface that is otherwise solid.
+
+     Written as a MODIFIER, used as `panel panel-solid`, rather than a second
+     full recipe — the rounding, shadow and layout still come from `.panel`, so
+     a change there lands on these too. Both rules are single-class and in the
+     same layer, so this one wins purely by being declared after it; keep them
+     adjacent. */
+  .panel-solid {
+    @apply bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .panel-title {
+    @apply text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400;
+  }
+
+  /* marketing-stats' `.panel` baked in `p-5 mb-5`, so its components pass no
+     padding of their own and collapse without it. Only the SPACING is restored
+     here, under an opt-in class — the grey it also carried was `gray-*` against
+     bonus-adjustment's `slate-*`, and colour follows bonus-adjustment. Put
+     `panel panel-padded` on a marketing-stats panel; the two rules are in the
+     same layer and this one is declared later, so the padding lands. */
+  .panel-padded {
+    @apply p-5 mb-5;
+  }
+  .panel-padded h2 {
+    @apply text-sm m-0 mb-3.5 text-slate-500 dark:text-slate-400 uppercase tracking-wide;
+  }
+
+  /* Table shell shared by every admin list. */
+  .data-table {
+    @apply w-full text-left text-xs;
+  }
+  .data-table thead tr {
+    @apply text-slate-600 dark:text-slate-300 font-semibold uppercase text-[10px] tracking-wider;
+  }
+  /* Sticky header. In a container that does NOT scroll, `sticky` is inert, so
+     this is safe to apply globally rather than per table. The background and
+     bottom border live on the `th`, not the `tr`: the `tr` is not the element
+     that stays put, so a border on it would scroll away from under the header
+     it belongs to. `py-2.5` against a body cell's `py-2` puts the header a
+     notch above the rows, and `leading-4` pins the line box — the `text-[10px]`
+     on `thead tr` shrinks the glyphs without shrinking the box they sit in. */
+  .data-table thead th {
+    @apply sticky top-0 z-10 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm
+           border-b border-slate-200/80 dark:border-slate-700
+           py-2.5 leading-4;
+  }
+  /* A frozen first column, for the wide tables. Needs a BACKGROUND, or the
+     cells scrolling underneath show straight through it; and a higher `z` on
+     the header cell, which is sticky on BOTH axes and has to stay above the
+     column while the column stays above the rows. The tint is deliberate: a
+     row's hover and selected backgrounds live on the `tr`, so a transparent
+     sticky cell would flicker between the row colour and whatever passed
+     behind it. */
+  .data-table .sticky-col {
+    @apply sticky left-0 z-[1] bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm
+           border-r border-slate-200/80 dark:border-slate-700;
+  }
+  .data-table thead th.sticky-col {
+    @apply z-20;
+  }
+  .data-table tbody {
+    @apply divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-200;
+  }
+
+  /* The grey explanatory strip several pages open with ("Showing your
+     department only", "Read-only by design"). */
+  .note {
+    @apply text-[11px] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/60
+           border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2;
+  }
+  .field-label {
+    @apply block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1;
+  }
+  .field-input {
+    @apply w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700
+           bg-white/80 dark:bg-slate-900/60 text-slate-800 dark:text-slate-100
+           placeholder-slate-400 dark:placeholder-slate-500
+           focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold
+           bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed
+           transition-colors;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium
+           text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800
+           disabled:opacity-50 transition-colors;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   ROW DENSITY (Appearance -> Density).
+
+   Deliberately UNLAYERED so these rules outrank each table's own py-3/text-xs
+   utilities — unlayered CSS always beats layered, which is what lets one
+   setting normalize every table without editing a single page's markup.
+   bonus-adjustment's scale, applied to every table in the gallery.
+--------------------------------------------------------------------------- */
+table th { white-space: nowrap; }
+html[data-density='compact']     table td { padding-top: 0; padding-bottom: 0; line-height: 32px; }
+html[data-density='compact']     table th { padding-top: 0; padding-bottom: 0; line-height: 40px; }
+html[data-density='standard']    table td { padding-top: 0; padding-bottom: 0; line-height: 40px; }
+html[data-density='standard']    table th { padding-top: 0; padding-bottom: 0; line-height: 48px; }
+html[data-density='comfortable'] table td { padding-top: 0; padding-bottom: 0; line-height: 48px; }
+html[data-density='comfortable'] table th { padding-top: 0; padding-bottom: 0; line-height: 58px; }
+
+/* ---------------------------------------------------------------------------
+   SCROLLBARS. The projects named these differently — `.scrollbar-thin` in
+   marketing-stats, `.custom-scrollbar` in bonus-adjustment — so both survive
+   with no conflict, and a component keeps whichever it already asks for. Both
+   are opt-in: most scroll areas (tables, page body) are fine with the native
+   scrollbar, and it is only compact popups where the default looks oversized.
+--------------------------------------------------------------------------- */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
+}
+.scrollbar-thin::-webkit-scrollbar { width: 6px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.5);
+  border-radius: 9999px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover { background-color: rgba(148, 163, 184, 0.75); }
+
+.custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-slate-300);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--color-slate-400); }
+.dark .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--color-slate-700); }
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--color-slate-600); }
+
+/* ---------------------------------------------------------------------------
+   CODE VIEW TOKENS. Defined here rather than as utilities because CodeBlock
+   injects them as raw class names into highlighted HTML, where Tailwind's
+   scanner would never see them and would purge the classes.
+--------------------------------------------------------------------------- */
+.tok-comment { color: #94a3b8; font-style: italic; }
+.tok-string  { color: #059669; }
+.tok-keyword { color: #7c3aed; font-weight: 600; }
+.tok-number  { color: #d97706; }
+.dark .tok-comment { color: #64748b; }
+.dark .tok-string  { color: #34d399; }
+.dark .tok-keyword { color: #a78bfa; }
+.dark .tok-number  { color: #fbbf24; }
