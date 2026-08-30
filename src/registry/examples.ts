@@ -15,6 +15,11 @@
 export type ExampleMeta = { id: string; title: string; description?: string };
 
 export const EXAMPLE_META: Record<string, ExampleMeta[]> = {
+  'combined-filter-dropdown': [
+      { id: 'chips', title: 'Chips', description: 'The default. One removable chip per selected option, measured to fit on a single line with a "+N more" popover for the overflow. Selections are seeded here — with nothing picked, every display mode looks the same.' },
+      { id: 'summary', title: 'Summary', description: 'One fixed-height line stating what the data is scoped to ("Europe · 2 teams"), which opens a popover holding the same removable chips. The height never changes with the selection, so a crowded toolbar cannot reflow.' },
+      { id: 'empty', title: 'Nothing selected', description: 'With an empty selection both modes collapse to just the trigger — there is no chip row or summary line to show.' },
+  ],
   'app-shell': [
       { id: 'left', title: 'Left', description: 'The default. A vertical rail beside the content, collapsing to an off-canvas drawer below the lg breakpoint.' },
       { id: 'right', title: 'Right', description: 'The same rail on the other edge — the border and the drawer both flip, and the header controls swap sides with them.' },

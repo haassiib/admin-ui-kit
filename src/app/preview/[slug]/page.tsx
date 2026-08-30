@@ -51,7 +51,7 @@ export default async function PreviewPage({ params }: { params: Promise<{ slug: 
       entry={entry}
       importPath={importPath}
       examples={examples}
-      props={source ? parseProps(source) : []}
+      props={source ? parseProps(source, entry.name) : []}
       nativeElement={source ? extendsNative(source) : null}
       source={source}
     />

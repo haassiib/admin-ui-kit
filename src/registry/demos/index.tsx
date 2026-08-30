@@ -329,22 +329,20 @@ export function TreeMultiSelectDropdownDemo() {
 }
 
 export function CombinedFilterDropdownDemo() {
-  const [value, setValue, echo] = useEcho<FilterValue>({ region: [], team: [] });
-  const groups = [
-    { key: 'region', label: 'Region', options: REGIONS.map((r) => ({ id: r.id, label: r.name })) },
-    { key: 'team', label: 'Team', options: TEAMS.map((t) => ({ id: t.id, label: t.name, parentId: t.regionId })) },
-  ];
-  const onChange = (k: string, ids: Array<string | number>) => setValue({ ...value, [k]: ids });
+  const [value, setValue, echo] = useEcho<FilterValue>({ region: [1], team: [1, 2] });
   return (
-    <div className="flex flex-col gap-6">
-      <Variant label="chips (default)">
-        <CombinedFilterDropdown groups={groups} value={value} onChange={onChange} onClearEverything={() => setValue({ region: [], team: [] })} />
-      </Variant>
-      <Variant label="summary">
-        <CombinedFilterDropdown groups={groups} value={value} onChange={onChange} selectionDisplay="summary" />
-      </Variant>
+    <>
+      <CombinedFilterDropdown
+        groups={[
+          { key: 'region', label: 'Region', options: REGIONS.map((r) => ({ id: r.id, label: r.name })) },
+          { key: 'team', label: 'Team', options: TEAMS.map((t) => ({ id: t.id, label: t.name, parentId: t.regionId })) },
+        ]}
+        value={value}
+        onChange={(k, ids) => setValue({ ...value, [k]: ids })}
+        onClearEverything={() => setValue({ region: [], team: [] })}
+      />
       {echo}
-    </div>
+    </>
   );
 }
 

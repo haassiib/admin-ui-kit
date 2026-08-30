@@ -10,6 +10,12 @@
  * on the destructured parameter, a named `interface XProps`, and an intersection
  * inside a `forwardRef` generic — and gives up cleanly on anything else rather
  * than guessing.
+ *
+ * It is ANCHORED on the exported component's own declaration. Several files here
+ * define private sub-components above the one they export — `Chip` above
+ * `CombinedFilterDropdown`, `Row` above `Sidebar`, `Delta` above `KpiTile` — and
+ * simply taking the first object type in the file documented the wrong
+ * component, convincingly and silently.
  */
 
 export type PropDoc = {
@@ -35,12 +41,36 @@ function block(src: string, open: number): string | null {
   return null;
 }
 
+/**
+ * Where the exported component's own declaration starts.
+ *
+ * Everything the parser looks for is searched from here, never from the top of
+ * the file. Returns 0 when the name is unknown or unmatched, which restores the
+ * old whole-file behaviour rather than returning nothing.
+ */
+function declarationIndex(src: string, name?: string): number {
+  if (!name) return 0;
+  const patterns = [
+    new RegExp(`export default function ${name}\\b`),
+    new RegExp(`export function ${name}\\b`),
+    new RegExp(`const ${name}\\s*=\\s*forwardRef`),
+    new RegExp(`const ${name}\\s*=`),
+    new RegExp(`function ${name}\\b`),
+  ];
+  for (const re of patterns) {
+    const m = re.exec(src);
+    if (m) return m.index;
+  }
+  return 0;
+}
+
 /** Defaults live in the destructuring pattern, not the type. */
-function destructuringDefaults(src: string): Record<string, string> {
+function destructuringDefaults(src: string, from: number): Record<string, string> {
   const out: Record<string, string> = {};
-  const m = /export default function \w+\(\s*\{/.exec(src) ?? /export function \w+\(\s*\{/.exec(src);
+  const tail = src.slice(from);
+  const m = /function \w*\(\s*\{/.exec(tail);
   if (!m) return out;
-  const body = block(src, src.indexOf('{', m.index));
+  const body = block(tail, tail.indexOf('{', m.index));
   if (!body) return out;
 
   let depth = 0;
@@ -102,28 +132,46 @@ export function extendsNative(source: string): string | null {
   return m ? m[1].toLowerCase() : null;
 }
 
-export function parseProps(source: string): PropDoc[] {
-  // Prefer the inline object type on the parameter — the dominant shape here.
-  let body: string | null = null;
-  const inline = /\}\s*:\s*\{/.exec(source);
-  if (inline) body = block(source, source.indexOf('{', inline.index + inline[0].length - 1));
+export function parseProps(source: string, componentName?: string): PropDoc[] {
+  const from = declarationIndex(source, componentName);
+  const tail = source.slice(from);
 
+  let body: string | null = null;
+
+  // 1. A named `interface <Name>Props` is the most reliable signal there is, and
+  //    it is tried FIRST because it may be declared either side of the component
+  //    — several here sit above it. `[^{]*` absorbs a generic parameter list, so
+  //    `interface PasteableGridProps<K extends string>` still matches.
+  if (componentName) {
+    const own = new RegExp(`interface ${componentName}Props[^{]*\\{`).exec(source);
+    if (own) body = block(source, source.indexOf('{', own.index));
+  }
+
+  // 2. An inline object type on the parameter — the dominant shape here. Scanned
+  //    from the component's own declaration, never from the top of the file.
   if (!body) {
-    const named = /(?:export )?interface \w*Props\s*\{/.exec(source);
+    const inline = /\}\s*:\s*\{/.exec(tail);
+    if (inline) body = block(tail, tail.indexOf('{', inline.index + inline[0].length - 1));
+  }
+
+  // 3. Any `*Props` interface, for a component whose props type is not named
+  //    after it.
+  if (!body) {
+    const named = /(?:export )?interface \w*Props[^{]*\{/.exec(source);
     if (named) body = block(source, source.indexOf('{', named.index));
   }
 
-  // `forwardRef<El, React.XHTMLAttributes<El> & { … }>` — the component's OWN
-  // props are the intersection member; the native attributes it also accepts
-  // are reported separately by `extendsNative` rather than listed one by one.
+  // 4. `forwardRef<El, React.XHTMLAttributes<El> & { … }>` — the component's OWN
+  //    props are the intersection member; the native attributes it also accepts
+  //    are reported by `extendsNative` rather than listed one by one.
   if (!body) {
-    const intersection = /&\s*\{/.exec(source);
-    if (intersection) body = block(source, source.indexOf('{', intersection.index));
+    const intersection = /&\s*\{/.exec(tail);
+    if (intersection) body = block(tail, tail.indexOf('{', intersection.index));
   }
 
   if (!body) return [];
 
-  const defaults = destructuringDefaults(source);
+  const defaults = destructuringDefaults(source, from);
 
   return members(body)
     .map((raw): PropDoc | null => {

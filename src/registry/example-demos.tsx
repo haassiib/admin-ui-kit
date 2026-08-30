@@ -23,6 +23,7 @@ import Pagination from '@/components/table/Pagination';
 import Tooltip, { InfoTooltip } from '@/components/overlay/Tooltip';
 import Progress from '@/components/data/Progress';
 import DataTable from '@/components/table/DataTable';
+import { CombinedFilterDropdown, type FilterValue } from '@/components/form/CombinedFilterDropdown';
 import { DEMOS } from './demos/map';
 import { EXAMPLE_META, type ExampleMeta } from './examples';
 
@@ -199,6 +200,57 @@ function NavMenuFilterable() {
       <NavMenu sections={MENU_SECTIONS} activeHref="/roles" filterable />
     </div>
   );
+}
+
+/* ------------------------------------------ CombinedFilterDropdown --- */
+
+const REGIONS = [
+  { id: 1, name: 'Europe' },
+  { id: 2, name: 'Americas' },
+  { id: 3, name: 'Asia-Pacific' },
+];
+const TEAMS = [
+  { id: 1, name: 'Engineering', regionId: 1 },
+  { id: 2, name: 'Research', regionId: 1 },
+  { id: 3, name: 'Design', regionId: 2 },
+  { id: 4, name: 'Support', regionId: 2 },
+  { id: 5, name: 'Operations', regionId: 3 },
+];
+const FILTER_GROUPS = [
+  { key: 'region', label: 'Region', options: REGIONS.map((r) => ({ id: r.id, label: r.name })) },
+  { key: 'team', label: 'Team', options: TEAMS.map((t) => ({ id: t.id, label: t.name, parentId: t.regionId })) },
+];
+
+/**
+ * Seeded with a selection, deliberately.
+ *
+ * Both display modes render NOTHING beside the trigger until something is
+ * picked, so an empty demo shows two identical buttons and the whole difference
+ * between them is invisible. Starting with a selection is the only way the
+ * example says anything.
+ */
+function useSeededFilter(initial: FilterValue) {
+  const [value, setValue] = useState<FilterValue>(initial);
+  return {
+    groups: FILTER_GROUPS,
+    value,
+    onChange: (key: string, ids: Array<string | number>) => setValue({ ...value, [key]: ids }),
+  };
+}
+
+function CombinedFilterDropdownChips() {
+  const bound = useSeededFilter({ region: [1], team: [1, 2] });
+  return <CombinedFilterDropdown {...bound} onClearEverything={() => bound.onChange('region', [])} />;
+}
+
+function CombinedFilterDropdownSummary() {
+  const bound = useSeededFilter({ region: [1], team: [1, 2] });
+  return <CombinedFilterDropdown {...bound} selectionDisplay="summary" />;
+}
+
+function CombinedFilterDropdownEmpty() {
+  const bound = useSeededFilter({ region: [], team: [] });
+  return <CombinedFilterDropdown {...bound} />;
 }
 
 /* --------------------------------------------------------------- others --- */
@@ -391,6 +443,7 @@ function DataTableEmpty() {
 
 /** slug -> example id -> component. Joined to `EXAMPLE_META` by id. */
 export const EXAMPLE_DEMOS: Record<string, Record<string, React.ComponentType>> = {
+  'combined-filter-dropdown': { 'chips': CombinedFilterDropdownChips, 'summary': CombinedFilterDropdownSummary, 'empty': CombinedFilterDropdownEmpty },
   'app-shell': { 'left': AppShellLeft, 'right': AppShellRight, 'top': AppShellTop, 'bottom': AppShellBottom },
   'nav-menu': { 'vertical': NavMenuVertical, 'horizontal': NavMenuHorizontal, 'filterable': NavMenuFilterable },
   'splitter': { 'basic': SplitterBasic, 'vertical': SplitterVertical, 'size': SplitterSize, 'min-max': SplitterMinMax, 'nested': SplitterNested, 'resize-events': SplitterResizeEvents },
