@@ -1,6 +1,6 @@
 # Admin UI Kit
 
-57 React components for admin and dashboard interfaces, with a live gallery.
+58 React components for admin and dashboard interfaces, with a live gallery.
 **Next.js 16 · React 19 · Tailwind 4 · TypeScript · MIT.**
 
 Copy-in, not install: every component is a single self-contained file you paste
@@ -18,7 +18,7 @@ npm run dev            # gallery at http://localhost:3020
 
 | Route | |
 |---|---|
-| `/` | All 57 components on one page, with search and filters |
+| `/` | All 58 components on one page, with search and filters |
 | `/preview/<slug>` | One component's documentation page |
 
 (`/all` redirects to `/` — it was the listing's address before the overview page
@@ -44,12 +44,13 @@ size, Nested, and Resize events.
 Button · Alert · Avatar · EmptyState · MenuIcon · UserDropdown · ThemeSettings ·
 ThemeScript · IdleLogout
 
-**Form & input** (12) — Field (+ Input, Textarea, Select) · Checkbox · ToggleSwitch ·
-MultiSelect · AutocompleteDropdown · TreeMultiSelectDropdown ·
+**Form & input** (13) — Field (+ Input, Textarea, Select) · Checkbox · ToggleSwitch ·
+PickList · MultiSelect · AutocompleteDropdown · TreeMultiSelectDropdown ·
 CombinedFilterDropdown · DatePicker · DateRangePicker · MonthPicker ·
 MonthRangePicker · MonthGrid
 
-**Tables & lists** (9) — DataTable · PasteableGrid · EditableCell · Pagination ·
+**Tables & lists** (9) — DataTable · PasteableGrid · EditableCell · Pagination
+(numbered links or page input) ·
 UrlPagination · SortableTh · SortableList · SaveAllBar · AccountCell
 
 **Data display** (12) — KpiTile · RankedTable · RankedBars · TrendChart ·

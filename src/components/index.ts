@@ -10,6 +10,7 @@
 // layout
 export { default as Alert } from './layout/Alert';
 export { default as AppShell } from './layout/AppShell';
+export type { SidebarPosition } from './layout/AppShell';
 export { default as Avatar } from './layout/Avatar';
 export { default as Breadcrumbs } from './layout/Breadcrumbs';
 export { default as Button } from './layout/Button';
@@ -19,7 +20,7 @@ export { default as IdleLogout } from './layout/IdleLogout';
 export { default as MenuIcon } from './layout/MenuIcon';
 export { ICON_MAP, ICON_NAMES, resolveMenuIcon } from './layout/MenuIcon';
 export { default as NavMenu } from './layout/NavMenu';
-export type { NavItem, NavSection } from './layout/NavMenu';
+export type { NavItem, NavOrientation, NavSection } from './layout/NavMenu';
 export { default as Sidebar } from './layout/Sidebar';
 export { default as Splitter } from './layout/Splitter';
 export { default as Tabs } from './layout/Tabs';
@@ -53,6 +54,8 @@ export { default as MonthPicker } from './form/MonthPicker';
 export { default as MonthRangePicker } from './form/MonthRangePicker';
 export { default as MultiSelect } from './form/MultiSelect';
 export type { Option, OptionValue } from './form/MultiSelect';
+export { default as PickList } from './form/PickList';
+export type { PickListValue } from './form/PickList';
 export { default as ToggleSwitch } from './form/ToggleSwitch';
 export type { TreeOption } from './form/TreeMultiSelectDropdown';
 
@@ -62,7 +65,7 @@ export { default as DataTable } from './table/DataTable';
 export type { Column } from './table/DataTable';
 export { default as EditableCell } from './table/EditableCell';
 export { default as Pagination } from './table/Pagination';
-export type { PaginationVariant } from './table/Pagination';
+export type { PaginationNavigation, PaginationVariant } from './table/Pagination';
 export { default as PasteableGrid } from './table/PasteableGrid';
 export type { PasteableGridColumn, PasteableGridHandle } from './table/PasteableGrid';
 export { default as SaveAllBar } from './table/SaveAllBar';
@@ -91,4 +94,8 @@ export type { DashboardData, Metrics, RankedRow, RetentionTrendPoint, TrendPoint
 // media
 export { default as MediaLibrary } from './media/MediaLibrary';
 export type { MediaItem } from './media/MediaLibrary';
+
+// lib
+export { pageRange } from '../lib/page-range';
+export type { PageToken } from '../lib/page-range';
 

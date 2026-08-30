@@ -1,8 +1,7 @@
 'use client';
 
 /** slug -> demo component. Split from the catalog so `registry/index.ts` stays
- *  plain data a server component may read. A slug absent here has no standalone
- *  demo (a hook, a script tag) and the page says so. */
+ *  plain data a server component may read. */
 
 import * as D from './index';
 
@@ -26,6 +25,7 @@ export const DEMOS: Record<string, React.ComponentType> = {
   'field': D.FieldDemo,
   'checkbox': D.CheckboxDemo,
   'toggle-switch': D.ToggleSwitchDemo,
+  'pick-list': D.PickListDemo,
   'multi-select': D.MultiSelectDemo,
   'autocomplete-dropdown': D.AutocompleteDropdownDemo,
   'tree-multi-select-dropdown': D.TreeMultiSelectDropdownDemo,

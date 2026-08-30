@@ -53,7 +53,12 @@ export const EXAMPLE_META: Record<string, ExampleMeta[]> = {
       { id: 'dismissible', title: 'Dismissible', description: 'Pass `onDismiss` to add a close control. Without it the alert is permanent.' },
   ],
   'pagination': [
-      { id: 'bar', title: 'Bar', description: 'The default — a full-width strip with a top border, for sitting under a table.' },
+      { id: 'basic', title: 'Basic', description: 'Numbered page links with ellipsis gaps, between first/prev and next/last. A gap that would hide exactly one page is replaced by that page — "1 … 3" costs the same width as "1 2 3" and tells you less.' },
+      { id: 'siblings', title: 'Siblings', description: '`siblings` sets how many links show either side of the current page. Two keeps more context around where you are, at the cost of width.' },
+      { id: 'edges', title: 'Edges', description: '`edges` pins links at each end, so the first and last pages stay reachable in one click however far into the set you are.' },
+      { id: 'no-ellipsis', title: 'Without gaps', description: 'With `showEllipsis={false}` every page is listed and `edges` is ignored — it only means anything relative to a gap. Fine for a set this size, unusable past a few dozen pages.' },
+      { id: 'input', title: 'Page input', description: '`navigation="input"` swaps the links for a "page N of M" box. Better past a few hundred pages, where numbered links stop being a map and start being noise.' },
+      { id: 'minimal', title: 'Minimal', description: 'The range line and page-size selector are both optional. Turning them off leaves just the navigation.' },
       { id: 'pill', title: 'Pill', description: 'A centred rounded pill, in flow below the table.' },
       { id: 'floating', title: 'Floating', description: 'The same pill, fixed to the bottom of the viewport. Look at the foot of the window.' },
   ],

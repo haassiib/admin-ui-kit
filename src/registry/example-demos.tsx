@@ -346,12 +346,28 @@ function usePager() {
   };
 }
 
-function PaginationBar() {
+const Boxed = ({ children }: { children: React.ReactNode }) => (
+  <div className="rounded-lg border border-slate-200 dark:border-slate-700">{children}</div>
+);
+
+function PaginationBasic() { return <Boxed><Pagination {...usePager()} /></Boxed>; }
+function PaginationSiblings() { return <Boxed><Pagination {...usePager()} siblings={2} /></Boxed>; }
+function PaginationEdges() { return <Boxed><Pagination {...usePager()} edges={2} /></Boxed>; }
+function PaginationNoEllipsis() {
+  const [page, setPage] = useState(3);
   return (
-    <div className="rounded-lg border border-slate-200 dark:border-slate-700">
-      <Pagination {...usePager()} />
-    </div>
+    <Boxed>
+      <Pagination
+        totalItems={180} itemsPerPage={25} currentPage={page}
+        onPageChange={setPage} onItemsPerPageChange={() => {}}
+        showEllipsis={false} showPageSize={false} itemType="members"
+      />
+    </Boxed>
   );
+}
+function PaginationInput() { return <Boxed><Pagination {...usePager()} navigation="input" /></Boxed>; }
+function PaginationMinimal() {
+  return <Boxed><Pagination {...usePager()} showRange={false} showPageSize={false} /></Boxed>;
 }
 function PaginationPill() { return <Pagination {...usePager()} variant="pill" />; }
 function PaginationFloating() { return <Pagination {...usePager()} variant="floating" />; }
@@ -450,7 +466,11 @@ export const EXAMPLE_DEMOS: Record<string, Record<string, React.ComponentType>> 
   'button': { 'variants': ButtonVariants, 'sizes': ButtonSizes, 'loading': ButtonLoading },
   'badge': { 'tones': BadgeTones, 'dot': BadgeDot },
   'alert': { 'tones': AlertTones, 'dismissible': AlertDismissible },
-  'pagination': { 'bar': PaginationBar, 'pill': PaginationPill, 'floating': PaginationFloating },
+  'pagination': {
+    'basic': PaginationBasic, 'siblings': PaginationSiblings, 'edges': PaginationEdges,
+    'no-ellipsis': PaginationNoEllipsis, 'input': PaginationInput, 'minimal': PaginationMinimal,
+    'pill': PaginationPill, 'floating': PaginationFloating,
+  },
   'tooltip': { 'placement': TooltipPlacement, 'appearance': TooltipAppearance, 'info': TooltipInfo },
   'progress': { 'basic': ProgressBasic, 'clamped': ProgressClamped },
   'data-table': { 'basic': DataTableBasic, 'selection': DataTableSelection, 'empty': DataTableEmpty },

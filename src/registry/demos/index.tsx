@@ -40,6 +40,7 @@ import { MonthGrid } from '@/components/form/MonthGrid';
 import MonthPicker from '@/components/form/MonthPicker';
 import MonthRangePicker from '@/components/form/MonthRangePicker';
 import MultiSelect, { type OptionValue } from '@/components/form/MultiSelect';
+import PickList, { type PickListValue } from '@/components/form/PickList';
 import ToggleSwitch from '@/components/form/ToggleSwitch';
 import { TreeMultiSelectDropdown } from '@/components/form/TreeMultiSelectDropdown';
 
@@ -69,6 +70,7 @@ import MediaLibrary from '@/components/media/MediaLibrary';
 
 import {
   DEMO_USER, MEDIA, MENU_TREE, NOTIFICATIONS, PEOPLE, RANKED, REGIONS, RETENTION, TEAMS, TREND,
+  type Person,
 } from '../fixtures';
 import { DemoTable, Row, Variant, useEcho } from './kit';
 
@@ -759,5 +761,30 @@ export function NavMenuDemo() {
         <NavMenu sections={sections} activeHref="/roles" filterable />
       </div>
     </div>
+  );
+}
+
+/* ------------------------------------------------------------- PickList --- */
+
+export function PickListDemo() {
+  const [value, setValue] = useState<PickListValue<Person>>({
+    source: PEOPLE.slice(3),
+    target: PEOPLE.slice(0, 3),
+  });
+  return (
+    <PickList
+      value={value}
+      onChange={setValue}
+      getId={(p) => p.id}
+      renderItem={(p) => (
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="truncate">{p.name}</span>
+          <span className="shrink-0 text-[10px] text-slate-400">{p.team}</span>
+        </span>
+      )}
+      sourceHeader="Available"
+      targetHeader="Reviewers"
+      filterable
+    />
   );
 }
