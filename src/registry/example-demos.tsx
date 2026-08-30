@@ -206,6 +206,26 @@ function NavMenuFilterable() {
   );
 }
 
+function NavMenuControlledFilter() {
+  const [query, setQuery] = useState('bill');
+  return (
+    <div className="flex max-w-md flex-col gap-3">
+      {/* The field is somewhere else entirely — a header, typically. This is how
+          the gallery's own search drives its sidebar. */}
+      <input
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Filter from outside the menu…"
+        aria-label="Filter menu"
+        className="field-input"
+      />
+      <div className="w-56 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+        <NavMenu sections={MENU_SECTIONS} activeHref="/roles" filter={query} />
+      </div>
+    </div>
+  );
+}
+
 /* ------------------------------------------ CombinedFilterDropdown --- */
 
 const REGIONS = [
@@ -713,7 +733,7 @@ export const EXAMPLE_DEMOS: Record<string, Record<string, React.ComponentType>> 
   'drawer': { 'basic': DrawerBasic, 'anchored': DrawerAnchored, 'no-backdrop': DrawerNoBackdrop, 'header-actions': DrawerHeaderActions },
   'combined-filter-dropdown': { 'chips': CombinedFilterDropdownChips, 'summary': CombinedFilterDropdownSummary, 'empty': CombinedFilterDropdownEmpty },
   'layout': { 'left': LayoutLeft, 'right': LayoutRight, 'top': LayoutTop, 'bottom': LayoutBottom },
-  'nav-menu': { 'vertical': NavMenuVertical, 'horizontal': NavMenuHorizontal, 'filterable': NavMenuFilterable },
+  'nav-menu': { 'vertical': NavMenuVertical, 'horizontal': NavMenuHorizontal, 'filterable': NavMenuFilterable, 'controlled-filter': NavMenuControlledFilter },
   'splitter': { 'basic': SplitterBasic, 'vertical': SplitterVertical, 'size': SplitterSize, 'min-max': SplitterMinMax, 'nested': SplitterNested, 'resize-events': SplitterResizeEvents },
   'button': { 'variants': ButtonVariants, 'sizes': ButtonSizes, 'loading': ButtonLoading },
   'badge': { 'tones': BadgeTones, 'dot': BadgeDot },

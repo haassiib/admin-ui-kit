@@ -27,6 +27,7 @@ export type SidebarPosition = 'left' | 'right' | 'top' | 'bottom';
 export default function Layout({
   sidebar,
   brand,
+  search,
   actions,
   sidebarPosition = 'left',
   sidebarWidth = 'w-64',
@@ -36,7 +37,15 @@ export default function Layout({
   sidebar: React.ReactNode;
   /** Logo or product name. */
   brand?: React.ReactNode;
-  /** Top-right: search, theme toggle, account menu. */
+  /**
+   * Header slot on the LEFT, beside the brand — for a search or filter field.
+   *
+   * Separate from `actions` because the two behave differently as the window
+   * narrows: a search field wants the leftover width, while the controls on the
+   * right want to keep their size and stay put.
+   */
+  search?: React.ReactNode;
+  /** Top-right: theme toggle, account menu, anything that is a control. */
   actions?: React.ReactNode;
   /**
    * Where the navigation sits.
@@ -79,6 +88,7 @@ export default function Layout({
       >
         {sidebarPosition === 'top' && brand}
         <div className="custom-scrollbar min-w-0 flex-1 overflow-x-auto">{sidebar}</div>
+        {sidebarPosition === 'top' && search && <div className="shrink-0">{search}</div>}
         {sidebarPosition === 'top' && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
       </div>
     );
@@ -90,6 +100,7 @@ export default function Layout({
         {sidebarPosition === 'bottom' && (
           <header className="flex h-14 shrink-0 items-center gap-3 border-b border-slate-200 bg-white/80 px-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
             {brand}
+            {search && <div className="min-w-0 flex-1">{search}</div>}
             <div className="ml-auto flex items-center gap-2">{actions}</div>
           </header>
         )}
@@ -154,6 +165,7 @@ export default function Layout({
           >
             <Menu className="h-4 w-4" />
           </button>
+          {search && <div className="min-w-0 max-w-sm flex-1">{search}</div>}
           <div className={cn('flex items-center gap-2', onLeft ? 'ml-auto' : 'mr-auto')}>{actions}</div>
         </header>
 

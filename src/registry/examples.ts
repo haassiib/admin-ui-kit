@@ -36,6 +36,7 @@ export const EXAMPLE_META: Record<string, ExampleMeta[]> = {
       { id: 'vertical', title: 'Vertical', description: 'The default: text links under uppercase section headings, active item on a filled pill.' },
       { id: 'horizontal', title: 'Horizontal', description: 'For a top or bottom bar. Headings become inline group labels, groups get dividers, and the active item is underlined — a pill in a one-row bar reads as a button rather than as position.' },
       { id: 'filterable', title: 'Filterable', description: 'Adds a filter above the sections and drops any section left with no matches. Worth it past roughly twenty items.' },
+      { id: 'controlled-filter', title: 'Filtered from outside', description: 'Pass `filter` and the menu renders no field of its own — the query comes from wherever you put the input. This is how the header search in this gallery drives the sidebar beside it.' },
   ],
   'splitter': [
       { id: 'basic', title: 'Basic', description: 'Two panes with a draggable divider. Drag it, or focus it and use the arrow keys — hold Shift for a bigger step.' },

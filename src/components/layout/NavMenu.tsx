@@ -31,6 +31,7 @@ export default function NavMenu({
   sections,
   activeHref,
   orientation = 'vertical',
+  filter,
   filterable = false,
   filterPlaceholder = 'Filter…',
   emptyLabel = 'No matches',
@@ -41,6 +42,16 @@ export default function NavMenu({
   /** Current route. Matched exactly — a menu is a list of destinations, not prefixes. */
   activeHref?: string;
   orientation?: NavOrientation;
+  /**
+   * Externally-driven filter query.
+   *
+   * When set, the menu filters on it and renders NO input of its own — the
+   * field lives wherever the caller put it, typically the header. `filterable`
+   * is the other arrangement: the menu owns both the field and the state.
+   * Passing both is not an error; the external query wins, because a component
+   * filtering on a value it cannot see the field for is the more confusing half.
+   */
+  filter?: string;
   filterable?: boolean;
   filterPlaceholder?: string;
   emptyLabel?: string;
@@ -48,7 +59,9 @@ export default function NavMenu({
   showSectionLabels?: boolean;
   className?: string;
 }) {
-  const [query, setQuery] = useState('');
+  const [internalQuery, setInternalQuery] = useState('');
+  const controlled = filter !== undefined;
+  const query = controlled ? filter : internalQuery;
   const horizontal = orientation === 'horizontal';
 
   const visible = useMemo(() => {
@@ -85,12 +98,12 @@ export default function NavMenu({
     );
   };
 
-  const filter = filterable && (
+  const filterField = !controlled && filterable && (
     <div className={cn('relative', horizontal ? 'w-44 shrink-0' : '')}>
       <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
       <input
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        value={internalQuery}
+        onChange={(e) => setInternalQuery(e.target.value)}
         placeholder={filterPlaceholder}
         aria-label={filterPlaceholder}
         className="field-input pl-8"
@@ -101,7 +114,7 @@ export default function NavMenu({
   if (horizontal) {
     return (
       <nav className={cn('flex items-center gap-4', className)}>
-        {filter}
+        {filterField}
         {visible.length === 0 ? (
           <p className="text-[11px] text-slate-400">{emptyLabel}</p>
         ) : (
@@ -123,7 +136,7 @@ export default function NavMenu({
 
   return (
     <nav className={cn('flex flex-col gap-6', className)}>
-      {filter}
+      {filterField}
       {visible.length === 0 ? (
         <p className="px-2 text-[11px] text-slate-400">{emptyLabel}</p>
       ) : (
