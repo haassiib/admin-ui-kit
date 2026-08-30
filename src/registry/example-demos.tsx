@@ -12,7 +12,8 @@
  * unique within a component and stable across edits.
  */
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { RefreshCw } from 'lucide-react';
 import Splitter from '@/components/layout/Splitter';
 import AppShell, { type SidebarPosition } from '@/components/layout/AppShell';
 import NavMenu from '@/components/layout/NavMenu';
@@ -24,6 +25,8 @@ import Tooltip, { InfoTooltip } from '@/components/overlay/Tooltip';
 import Progress from '@/components/data/Progress';
 import DataTable from '@/components/table/DataTable';
 import { CombinedFilterDropdown, type FilterValue } from '@/components/form/CombinedFilterDropdown';
+import Drawer from '@/components/overlay/Drawer';
+import Card from '@/components/layout/Card';
 import { DEMOS } from './demos/map';
 import { EXAMPLE_META, type ExampleMeta } from './examples';
 
@@ -253,6 +256,99 @@ function CombinedFilterDropdownEmpty() {
   return <CombinedFilterDropdown {...bound} />;
 }
 
+/* --------------------------------------------------------------- Drawer --- */
+
+const drawerBody = (
+  <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+    Drag the left edge to resize. Escape and the close button both dismiss it.
+  </p>
+);
+
+function DrawerBasic() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Open drawer</Button>
+      <Drawer
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Request REQ-4471"
+        subtitle="Engineering · submitted 08:02"
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button onClick={() => setOpen(false)}>Approve</Button>
+          </div>
+        }
+      >
+        {drawerBody}
+      </Drawer>
+    </>
+  );
+}
+
+function DrawerAnchored() {
+  const [open, setOpen] = useState(false);
+  // The anchor is the CARD the panel belongs to, never the button that opens
+  // it: `anchorRef` mirrors the element's top, height and right edge onto the
+  // panel, so anchoring to a 28px button yields a 28px drawer.
+  const card = useRef<HTMLDivElement>(null);
+  return (
+    <div ref={card}>
+      <Card title="Reviewers" subtitle="The panel covers this card, not the window." solid>
+        <Button onClick={() => setOpen(true)}>Open over this card</Button>
+        <Drawer
+          open={open}
+          onClose={() => setOpen(false)}
+          title="Edit reviewers"
+          anchorRef={card}
+          initialWidth={340}
+        >
+          {drawerBody}
+        </Drawer>
+      </Card>
+    </div>
+  );
+}
+
+function DrawerNoBackdrop() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Open without backdrop</Button>
+      <Drawer open={open} onClose={() => setOpen(false)} title="Non-modal panel" backdrop={false}>
+        <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+          The page behind stays readable and clickable. Click-outside no longer closes — a click
+          outside is now a click ON something — so Escape and the close button are the way out.
+        </p>
+      </Drawer>
+    </>
+  );
+}
+
+function DrawerHeaderActions() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Open with header action</Button>
+      <Drawer
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Request REQ-4471"
+        maxWidth={0.6}
+        headerActions={
+          <Button size="sm" variant="ghost" onClick={(e) => e.stopPropagation()}>
+            <RefreshCw className="h-3.5 w-3.5" />
+            Refresh
+          </Button>
+        }
+      >
+        {drawerBody}
+      </Drawer>
+    </>
+  );
+}
+
 /* --------------------------------------------------------------- others --- */
 
 function ButtonVariants() {
@@ -459,6 +555,7 @@ function DataTableEmpty() {
 
 /** slug -> example id -> component. Joined to `EXAMPLE_META` by id. */
 export const EXAMPLE_DEMOS: Record<string, Record<string, React.ComponentType>> = {
+  'drawer': { 'basic': DrawerBasic, 'anchored': DrawerAnchored, 'no-backdrop': DrawerNoBackdrop, 'header-actions': DrawerHeaderActions },
   'combined-filter-dropdown': { 'chips': CombinedFilterDropdownChips, 'summary': CombinedFilterDropdownSummary, 'empty': CombinedFilterDropdownEmpty },
   'app-shell': { 'left': AppShellLeft, 'right': AppShellRight, 'top': AppShellTop, 'bottom': AppShellBottom },
   'nav-menu': { 'vertical': NavMenuVertical, 'horizontal': NavMenuHorizontal, 'filterable': NavMenuFilterable },

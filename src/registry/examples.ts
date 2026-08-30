@@ -15,6 +15,12 @@
 export type ExampleMeta = { id: string; title: string; description?: string };
 
 export const EXAMPLE_META: Record<string, ExampleMeta[]> = {
+  'drawer': [
+      { id: 'basic', title: 'Basic', description: 'A full-height panel on the right, over a dimmed backdrop. Drag its left edge to resize; Escape, the backdrop and the close button all dismiss it.' },
+      { id: 'anchored', title: 'Anchored to an element', description: '`anchorRef` fits the panel to an element instead of the viewport — the card whose content it belongs to. Point it at the CARD, never at the button that opens it: it mirrors the element\'s top, height and right edge, so a 28px button yields a 28px drawer.' },
+      { id: 'no-backdrop', title: 'Without a backdrop', description: 'For a panel beside work you are still meant to read and use. Three things change together: it stops being `aria-modal`, it stops swallowing pointer events, and click-outside no longer closes — a click outside is now a click on something.' },
+      { id: 'header-actions', title: 'Header actions and width', description: '`headerActions` puts a panel-level control in the title bar; `maxWidth` caps how far the drag can go, as a fraction of the viewport.' },
+  ],
   'combined-filter-dropdown': [
       { id: 'chips', title: 'Chips', description: 'The default. One removable chip per selected option, measured to fit on a single line with a "+N more" popover for the overflow. Selections are seeded here — with nothing picked, every display mode looks the same.' },
       { id: 'summary', title: 'Summary', description: 'One fixed-height line stating what the data is scoped to ("Europe · 2 teams"), which opens a popover holding the same removable chips. The height never changes with the selection, so a crowded toolbar cannot reflow.' },

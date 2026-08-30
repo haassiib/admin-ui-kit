@@ -621,19 +621,27 @@ export function ModalDemo() {
 
 export function DrawerDemo() {
   const [open, setOpen] = useState(false);
-  const anchor = useRef<HTMLButtonElement>(null);
   return (
     <>
-      <Button ref={anchor} onClick={() => setOpen(true)}>Open drawer</Button>
+      <Button onClick={() => setOpen(true)}>Open drawer</Button>
       <Drawer
         open={open}
         onClose={() => setOpen(false)}
         title="Request REQ-4471"
         subtitle="Engineering · submitted 08:02"
         maxWidth={0.6}
-        headerActions={<Button size="sm" variant="ghost" onClick={(e) => e.stopPropagation()}><RefreshCw className="h-3.5 w-3.5" />Refresh</Button>}
-        footer={<div className="flex justify-end gap-2"><Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button><Button onClick={() => setOpen(false)}>Approve</Button></div>}
-        anchorRef={anchor}
+        headerActions={
+          <Button size="sm" variant="ghost" onClick={(e) => e.stopPropagation()}>
+            <RefreshCw className="h-3.5 w-3.5" />
+            Refresh
+          </Button>
+        }
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button onClick={() => setOpen(false)}>Approve</Button>
+          </div>
+        }
       >
         <p className="text-xs text-slate-600 dark:text-slate-300">Drag the left edge to resize.</p>
       </Drawer>
