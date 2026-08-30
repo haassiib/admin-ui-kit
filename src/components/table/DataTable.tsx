@@ -8,7 +8,6 @@ import {
   Check,
   ChevronsUpDown,
   Columns3,
-  Filter,
   Search,
   X,
 } from 'lucide-react';
@@ -18,6 +17,7 @@ import EmptyState from '@/components/layout/EmptyState';
 import Pagination from './Pagination';
 
 export type ColumnPin = 'left' | 'right';
+export type TableSize = 'small' | 'normal' | 'large';
 
 export type Column<T> = {
   key: string;
@@ -26,13 +26,11 @@ export type Column<T> = {
   /** Omit to make the column unsortable. */
   sortValue?: (row: T) => string | number | null;
   /**
-   * Plain text for this cell, used by the global search and the column filter
-   * menu. Cells render nodes, and you cannot match a regex against JSX — so a
-   * column is only searchable or filterable if it can say what its text is.
+   * Plain text for this cell, used by the global search. Cells render nodes, and
+   * you cannot match a string against JSX — so a column is searchable only if it
+   * can say what its text is.
    */
   filterValue?: (row: T) => string;
-  /** Adds a filter menu to this header. Requires `filterValue`. */
-  filterable?: boolean;
   align?: 'left' | 'right';
   /**
    * Width in pixels. Required in practice for a PINNED column: the sticky
@@ -85,6 +83,11 @@ export default function DataTable<T>({
   columnToggle = false,
   pinnedRowIds,
   loading = false,
+  stripedRows = false,
+  showGridlines = false,
+  size = 'normal',
+  header,
+  footer,
   emptyTitle = 'Nothing here yet',
   emptyHint,
   maxHeight,
@@ -110,6 +113,20 @@ export default function DataTable<T>({
   /** Rows kept above the scroll, in the order given. */
   pinnedRowIds?: Array<string | number>;
   loading?: boolean;
+  /** Alternating row backgrounds. Selection and pinning still win over the stripe. */
+  stripedRows?: boolean;
+  /** Vertical rules between cells. Horizontal rules are always on. */
+  showGridlines?: boolean;
+  /**
+   * Row height. Applied as `data-size` on the table and resolved in CSS, since
+   * the app-wide density rules zero every cell's vertical padding — a size
+   * expressed in padding would compute to nothing. See globals.css.
+   */
+  size?: TableSize;
+  /** A bar above the table, beside the search and column controls. */
+  header?: React.ReactNode;
+  /** A bar below the table, above the pagination. */
+  footer?: React.ReactNode;
   emptyTitle?: string;
   emptyHint?: string;
   /** Caps the scroll box, e.g. `'24rem'`. Without it the table grows. */
@@ -118,9 +135,8 @@ export default function DataTable<T>({
 }) {
   const [localSort, setLocalSort] = useState<SortState>(null);
   const [page, setPage] = useState(1);
-  const [size, setSize] = useState(initialPageSize);
+  const [pageSizeState, setPageSizeState] = useState(initialPageSize);
   const [query, setQuery] = useState('');
-  const [filters, setFilters] = useState<Record<string, string[]>>({});
   const [hidden, setHidden] = useState<string[]>([]);
   const [widths, setWidths] = useState<Record<string, number>>({});
   const [headHeight, setHeadHeight] = useState(0);
@@ -177,23 +193,21 @@ export default function DataTable<T>({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visibleColumns, widths, selectable]);
 
-  /** Global search, then per-column filters. Both need `filterValue`. */
+  /**
+   * One search box across every column that can say what its text is.
+   *
+   * Deliberately not per-column filter menus as well: two filtering mechanisms
+   * on one table means two places to look when the rows on screen are not the
+   * rows you expected, and a menu buried in a header is the one people forget
+   * they left set.
+   */
   const filtered = useMemo(() => {
-    let out = rows;
     const q = query.trim().toLowerCase();
-    if (q) {
-      out = out.filter((r) =>
-        columns.some((c) => c.filterValue && c.filterValue(r).toLowerCase().includes(q)),
-      );
-    }
-    for (const [key, allowed] of Object.entries(filters)) {
-      if (!allowed?.length) continue;
-      const col = columns.find((c) => c.key === key);
-      if (!col?.filterValue) continue;
-      out = out.filter((r) => allowed.includes(col.filterValue!(r)));
-    }
-    return out;
-  }, [rows, columns, query, filters]);
+    if (!q) return rows;
+    return rows.filter((r) =>
+      columns.some((c) => c.filterValue && c.filterValue(r).toLowerCase().includes(q)),
+    );
+  }, [rows, columns, query]);
 
   // Sort locally only while the caller has NOT taken over — otherwise it is
   // sorting server-side and re-sorting here would fight it.
@@ -217,7 +231,8 @@ export default function DataTable<T>({
     .map((id) => rows.find((r) => getRowId(r) === id))
     .filter((r): r is T => !!r);
   const bodyRows = sorted.filter((r) => !pinnedSet.has(getRowId(r)));
-  const paged = size > 0 ? bodyRows.slice((page - 1) * size, page * size) : bodyRows;
+  const paged =
+    pageSizeState > 0 ? bodyRows.slice((page - 1) * pageSizeState, page * pageSizeState) : bodyRows;
 
   const ids = paged.map(getRowId);
   const sel = selected ?? [];
@@ -251,12 +266,13 @@ export default function DataTable<T>({
     );
   }
 
-  const hasToolbar = searchable || columnToggle;
+  const hasToolbar = searchable || columnToggle || !!header;
 
   return (
     <div className={cn('panel panel-solid flex min-h-0 flex-col', className)}>
       {hasToolbar && (
         <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-slate-200 px-3 py-2 dark:border-slate-700">
+          {header}
           {searchable && (
             <div className="relative min-w-48 flex-1">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
@@ -309,7 +325,11 @@ export default function DataTable<T>({
         className="custom-scrollbar min-h-0 flex-1 overflow-auto"
         style={maxHeight ? { maxHeight } : undefined}
       >
-        <table className="data-table" style={{ tableLayout: resizable ? 'fixed' : 'auto' }}>
+        <table
+          className="data-table"
+          data-size={size === 'normal' ? undefined : size}
+          style={{ tableLayout: resizable ? 'fixed' : 'auto' }}
+        >
           <thead ref={headRef}>
             <tr>
               {selectable && (
@@ -342,17 +362,6 @@ export default function DataTable<T>({
                       onSort={setSort}
                       disabled={!c.sortValue}
                     />
-                    {c.filterable && c.filterValue && (
-                      <ColumnFilter
-                        column={c}
-                        rows={rows}
-                        active={filters[c.key] ?? []}
-                        onChange={(next) => {
-                          setFilters({ ...filters, [c.key]: next });
-                          setPage(1);
-                        }}
-                      />
-                    )}
                     {resizable && (
                       <ResizeHandle
                         width={widthOf(c) ?? DEFAULT_WIDTH}
@@ -379,6 +388,7 @@ export default function DataTable<T>({
                   onSelectedChange={onSelectedChange}
                   colStyle={colStyle}
                   pinClass={pinClass}
+                  gridlines={showGridlines}
                   stickyTop={headHeight}
                 />
               ))}
@@ -400,7 +410,7 @@ export default function DataTable<T>({
             ) : paged.length === 0 ? (
               <tr>
                 <td colSpan={visibleColumns.length + (selectable ? 1 : 0)} className="px-3 py-8">
-                  <EmptyState title="No rows match" hint="Clear the search or filters to see everything." />
+                  <EmptyState title="No rows match" hint="Clear the search to see everything." />
                 </td>
               </tr>
             ) : (
@@ -415,6 +425,8 @@ export default function DataTable<T>({
                   onSelectedChange={onSelectedChange}
                   colStyle={colStyle}
                   pinClass={pinClass}
+                  gridlines={showGridlines}
+                  striped={stripedRows}
                 />
               ))
             )}
@@ -437,14 +449,20 @@ export default function DataTable<T>({
         </div>
       )}
 
-      {size > 0 && (
+      {footer && (
+        <div className="shrink-0 border-t border-slate-200 px-4 py-2 text-xs text-slate-600 dark:border-slate-700 dark:text-slate-300">
+          {footer}
+        </div>
+      )}
+
+      {pageSizeState > 0 && (
         <Pagination
           totalItems={bodyRows.length}
-          itemsPerPage={size}
+          itemsPerPage={pageSizeState}
           currentPage={page}
           onPageChange={setPage}
           onItemsPerPageChange={(n) => {
-            setSize(n);
+            setPageSizeState(n);
             setPage(1);
           }}
         />
@@ -464,6 +482,8 @@ function Row<T>({
   onSelectedChange,
   colStyle,
   pinClass,
+  gridlines,
+  striped,
   stickyTop,
 }: {
   row: T;
@@ -474,6 +494,8 @@ function Row<T>({
   onSelectedChange?: (next: Array<string | number>) => void;
   colStyle: (c: Column<T>) => React.CSSProperties;
   pinClass: (c: Column<T>) => string | false | undefined;
+  gridlines?: boolean;
+  striped?: boolean;
   /** Set for a pinned row: how far under the header it sticks. */
   stickyTop?: number;
 }) {
@@ -490,6 +512,9 @@ function Row<T>({
   return (
     <tr
       className={cn(
+        // Order matters: a selected row must still read as selected inside a
+        // striped table, so the stripe is declared first and overridden.
+        striped && !pinned && 'odd:bg-slate-50/70 dark:odd:bg-slate-800/30',
         !pinned && 'hover:bg-slate-50 dark:hover:bg-slate-800/50',
         checked && !pinned && 'bg-indigo-50/60 dark:bg-indigo-500/10',
       )}
@@ -513,6 +538,7 @@ function Row<T>({
           style={{ ...colStyle(c), ...cellStyle }}
           className={cn(
             'truncate px-3',
+            gridlines && 'border-r border-slate-200 last:border-r-0 dark:border-slate-700',
             c.align === 'right' && 'text-right',
             pinClass(c),
             cellBase,
@@ -716,62 +742,5 @@ function HeaderMenu({
           document.body,
         )}
     </>
-  );
-}
-
-function ColumnFilter<T>({
-  column,
-  rows,
-  active,
-  onChange,
-}: {
-  column: Column<T>;
-  rows: T[];
-  active: string[];
-  onChange: (next: string[]) => void;
-}) {
-  // The distinct values present, not a caller-supplied list: a filter offering
-  // an option that matches nothing is a dead end, and one missing a value that
-  // exists is worse.
-  const values = useMemo(
-    () => [...new Set(rows.map((r) => column.filterValue!(r)).filter(Boolean))].sort(),
-    [rows, column],
-  );
-
-  return (
-    <HeaderMenu
-      label={`Filter ${String(column.header)}`}
-      active={active.length > 0}
-      icon={<Filter className={cn('h-3 w-3', active.length > 0 && 'fill-current')} />}
-    >
-      <div className="flex items-center justify-between px-2 py-1">
-        <span className="panel-title">{column.header}</span>
-        {active.length > 0 && (
-          <button onClick={() => onChange([])} className="text-[10px] text-indigo-600 hover:underline dark:text-indigo-400">
-            Clear
-          </button>
-        )}
-      </div>
-      {values.map((v) => {
-        const on = active.includes(v);
-        return (
-          <button
-            key={v}
-            onClick={() => onChange(on ? active.filter((x) => x !== v) : [...active, v])}
-            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs hover:bg-slate-100 dark:hover:bg-slate-800"
-          >
-            <span
-              className={cn(
-                'grid h-3.5 w-3.5 shrink-0 place-items-center rounded border',
-                on ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300 dark:border-slate-600',
-              )}
-            >
-              {on && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
-            </span>
-            <span className="truncate">{v}</span>
-          </button>
-        );
-      })}
-    </HeaderMenu>
   );
 }

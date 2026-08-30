@@ -723,12 +723,12 @@ const NAME: Column<Member> = {
   sortValue: (m) => m.name, filterValue: (m) => m.name,
 };
 const EMAIL: Column<Member> = { key: 'email', header: 'Email', width: 190, cell: (m) => m.email, sortValue: (m) => m.email, filterValue: (m) => m.email };
-const TEAM: Column<Member> = { key: 'team', header: 'Team', width: 140, cell: (m) => m.team, sortValue: (m) => m.team, filterValue: (m) => m.team, filterable: true };
-const ROLE: Column<Member> = { key: 'role', header: 'Role', width: 130, cell: (m) => m.role, sortValue: (m) => m.role, filterValue: (m) => m.role, filterable: true };
+const TEAM: Column<Member> = { key: 'team', header: 'Team', width: 140, cell: (m) => m.team, sortValue: (m) => m.team, filterValue: (m) => m.team };
+const ROLE: Column<Member> = { key: 'role', header: 'Role', width: 130, cell: (m) => m.role, sortValue: (m) => m.role, filterValue: (m) => m.role };
 const STATUS: Column<Member> = {
   key: 'status', header: 'Status', width: 120,
   cell: (m) => <Badge dot tone={statusTone(m.status)}>{m.status}</Badge>,
-  sortValue: (m) => m.status, filterValue: (m) => m.status, filterable: true,
+  sortValue: (m) => m.status, filterValue: (m) => m.status,
 };
 const PROJECTS: Column<Member> = { key: 'projects', header: 'Projects', align: 'right', width: 110, cell: (m) => m.projects, sortValue: (m) => m.projects };
 const SPEND: Column<Member> = { key: 'spend', header: 'Spend', align: 'right', width: 120, cell: (m) => `$${m.spend.toLocaleString()}`, sortValue: (m) => m.spend };
@@ -767,8 +767,40 @@ function DataTableSearch() {
   return <DataTable rows={MEMBERS} columns={CORE} getRowId={(m) => m.id} searchable searchPlaceholder="Search members…" />;
 }
 
-function DataTableFilters() {
-  return <DataTable rows={MEMBERS} columns={[NAME, TEAM, ROLE, STATUS]} getRowId={(m) => m.id} />;
+function DataTableStriped() {
+  return <DataTable rows={MEMBERS} columns={[NAME, TEAM, ROLE, STATUS]} getRowId={(m) => m.id} stripedRows />;
+}
+
+function DataTableGridlines() {
+  return <DataTable rows={MEMBERS} columns={[NAME, TEAM, ROLE, STATUS]} getRowId={(m) => m.id} showGridlines />;
+}
+
+function DataTableSize() {
+  const [size, setSize] = useState<'small' | 'normal' | 'large'>('small');
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex gap-2">
+        {(['small', 'normal', 'large'] as const).map((s) => (
+          <Button key={s} size="sm" variant={size === s ? 'primary' : 'secondary'} onClick={() => setSize(s)}>
+            {s}
+          </Button>
+        ))}
+      </div>
+      <DataTable rows={MEMBERS.slice(0, 4)} columns={[NAME, TEAM, STATUS]} getRowId={(m) => m.id} size={size} />
+    </div>
+  );
+}
+
+function DataTableHeaderFooter() {
+  return (
+    <DataTable
+      rows={MEMBERS}
+      columns={[NAME, TEAM, SPEND]}
+      getRowId={(m) => m.id}
+      header={<span className="text-xs font-semibold text-slate-700 dark:text-slate-200">Team members</span>}
+      footer={<span>{MEMBERS.length} members · ${MEMBERS.reduce((t, m) => t + m.spend, 0).toLocaleString()} total</span>}
+    />
+  );
 }
 
 function DataTablePinnedColumns() {
@@ -823,6 +855,7 @@ function DataTableEverything() {
       resizable
       columnToggle
       pinnedRowIds={[1]}
+      stripedRows
       pageSize={25}
       maxHeight="18rem"
     />
@@ -910,10 +943,12 @@ export const EXAMPLE_DEMOS: Record<string, Record<string, React.ComponentType>> 
   'progress': { 'basic': ProgressBasic, 'clamped': ProgressClamped },
   'data-table': {
     'basic': DataTableBasic, 'sorting': DataTableSorting, 'selection': DataTableSelection,
-    'search': DataTableSearch, 'filters': DataTableFilters, 'pinned-columns': DataTablePinnedColumns,
-    'pinned-rows': DataTablePinnedRows, 'resizable': DataTableResizable,
-    'column-toggle': DataTableColumnToggle, 'everything': DataTableEverything,
-    'loading': DataTableLoading, 'ranked': DataTableRanked, 'empty': DataTableEmpty,
+    'search': DataTableSearch, 'striped': DataTableStriped, 'gridlines': DataTableGridlines,
+    'size': DataTableSize, 'header-footer': DataTableHeaderFooter,
+    'pinned-columns': DataTablePinnedColumns, 'pinned-rows': DataTablePinnedRows,
+    'resizable': DataTableResizable, 'column-toggle': DataTableColumnToggle,
+    'everything': DataTableEverything, 'loading': DataTableLoading,
+    'ranked': DataTableRanked, 'empty': DataTableEmpty,
   },
 };
 

@@ -30,7 +30,7 @@ const BODY = 'main [data-demo]';
 // [slug, how, trigger selector within the demo]. The selector defaults to the
 // first control; DataTable needs it, because its first button sorts a column.
 const CASES = [
-  ['data-table', 'click', 'thead th button[aria-label^="Filter"]'],
+  ['data-table', 'click', 'button[aria-label="Columns"]'],
   ['multi-select', 'click'],
   ['autocomplete-dropdown', 'click'],
   ['combined-filter-dropdown', 'click'],
