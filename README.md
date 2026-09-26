@@ -1,6 +1,6 @@
 # Admin UI Kit
 
-55 React components for admin and dashboard interfaces, with a live gallery.
+104 React components for admin and dashboard interfaces, with a live gallery.
 **Next.js 16 · React 19 · Tailwind 4 · TypeScript · MIT.**
 
 Copy-in, not install: every component is a single self-contained file you paste
@@ -18,7 +18,7 @@ npm run dev            # gallery at http://localhost:3020
 
 | Route | |
 |---|---|
-| `/` | All 55 components on one page, with search and filters |
+| `/` | All 104 components on one page, with search and filters |
 | `/preview/<slug>` | One component's documentation page |
 
 (`/all` redirects to `/` — it was the listing's address before the overview page
@@ -40,27 +40,90 @@ Each component page is laid out like a docs site:
 
 ## Components
 
-**Layout & shell** (17) — Layout (nav left/right/top/bottom) · NavMenu
+**Layout & shell** (22) — Layout (the whole app frame: collapsible sidebar, header menus, breadcrumbs, theme settings, user menu) · NavMenu
 (vertical/horizontal) · Sidebar · Topbar · Breadcrumbs · Splitter · Tabs · Card ·
 Button · Alert · Avatar · EmptyState · MenuIcon · UserDropdown · ThemeSettings ·
-ThemeScript · IdleLogout
+ThemeScript · IdleLogout · Fieldset · Divider · Accordion · ButtonGroup (+ SegmentedControl) ·
+SplitButton
 
-**Form & input** (13) — Field (+ Input, Textarea, Select) · Checkbox · ToggleSwitch ·
+**Form & input** (32) — Field (+ Input, Textarea, Select) · Checkbox · ToggleSwitch ·
 PickList · MultiSelect · AutocompleteDropdown · TreeMultiSelectDropdown ·
 CombinedFilterDropdown · DatePicker · DateRangePicker · MonthPicker ·
-MonthRangePicker · MonthGrid
+MonthRangePicker · MonthGrid · DayGrid · FilterPanel · ConditionGroupsBuilder ·
+GroupPanel · SortPanel · ColorRulesPanel · FieldsPanel · FieldEditor · Slider ·
+RadioGroup · Knob · InputGroup · IconField · InputMask · InputPassword · InputColor ·
+FloatLabel · IftaLabel · CascadeSelect
 
-**Tables & lists** (9) — DataTable · PasteableGrid · EditableCell · Pagination
-(numbered links or page input) ·
-UrlPagination · SortableTh · SortableList · SaveAllBar · AccountCell
+**Tables & lists** (12) — DataTable · BaseTable (the whole Lark-Base table, with
+saved views) · BaseGrid · ViewTabs · PivotTable (Filters, Columns, Rows and Data
+zones, subtotals, CSV export) ·
+GroupBandRow · PasteableGrid · EditableCell · Pagination (numbered links or page
+input) · SortableList · SaveAllBar · AccountCell
 
-**Data display** (11) — KpiTile · RankedBars · TrendChart · RetentionChart ·
-ActivityFeed · StatusBar · StatusSteps · Badge · Progress · Skeleton · chartTheme
+**Data display** (24) — KpiTile · Badge · OptionPill · Progress · Skeleton ·
+ActivityFeed · StatusBar · StatusSteps · Tree · OrganizationChart · **charts:** ChartCard · BarChart
+(grouped, stacked, horizontal) · LineChart · AreaChart · DonutChart ·
+ScatterChart · Heatmap · FunnelChart · DivergingBars · Sparkline · RankedBars ·
+TrendChart · RetentionChart · chartTheme (the validated palette)
 
-**Overlays** (6) — Modal · Drawer · Tooltip · ConfirmPopover · NotificationBell ·
-NotificationCard
+**Overlays** (11) — Modal (draggable, resizable) · MultilevelDialog (a stack of
+dialogs) · MultilevelMenu (a cascading filter menu) · Drawer · AnchoredPanel (a
+dialog that nests beside) · ContextMenu · SpeedDial · Tooltip · ConfirmPopover ·
+NotificationBell · NotificationCard
 
-**Media** (1) — MediaLibrary
+**Media** (3) — MediaLibrary · Carousel · Gallery (with a fullscreen lightbox)
+
+### The Lark-Base-style table
+
+`BaseTable` is the whole thing in one component: tabs of saved views over a
+`BaseGrid`. Pass columns and rows, answer the edit callbacks, and you get:
+
+| Area | What it does |
+|---|---|
+| Views | Tabs of saved views, each a **grid** or a **board**. Add, rename in place, duplicate, delete, drag to reorder. Kept in `localStorage` with `storageKey`, or controlled with `views` / `onViewsChange` for a server. |
+| Per view | Search, filter, group (grid), sort, conditional colour, column order and visibility, widths, columns frozen at the left or right edge, pinned rows, the board's lane field. |
+| Columns | Drag a header to move it (into the frozen block freezes it), drag its edge to resize, and a header menu: edit, hide, move left/right, freeze up to / at start / at end, sort, group. |
+| Editing | In-place cells chosen by type; a record panel per row with **Details**, **History** (timeline) and **Log** (table) tabs; drag a card between board lanes. Every edit is recorded. |
+| Fields | "New field" in the Fields panel or the `+` header: eleven types (text, long text, number, currency, date, checkbox, single/multi select, person, URL, email), options with colours. `columnFromField` turns a definition into a column. |
+
+The toolbar panels are components in their own right, each usable over any table:
+
+| Panel | Model in `src/lib/` | What it does |
+|---|---|---|
+| `FieldsPanel` | — | search columns, eye to show/hide, drag to reorder, click a name to edit it, "New field" |
+| `FieldEditor` | `fields.ts` | add or edit a column: name, type, options with colours |
+| `FilterPanel` | `conditions.ts` | `[field] [operator] [value]` rows, matching all or any; relative dates ("this week") |
+| `ConditionGroupsBuilder` | `conditions.ts` | the same rows in OR'd groups, for a rule editor |
+| `GroupPanel` | `grouping.ts` | up to three levels, each with a direction, reordered by drag |
+| `SortPanel` | `sort.ts` | up to three columns, directions labelled by meaning ("Old → New") |
+| `ColorRulesPanel` | `coloring.ts` + `tones.ts` | a filter predicate with a tone; paints a cell or a row; first match wins |
+
+One evaluator (`matches` in `conditions.ts`) answers both the filter and the
+colour rules, so the two cannot disagree.
+
+#### Cloning the table into another project
+
+`BaseTable` is 31 files, about 7,200 lines, and needs only `react`,
+`react-dom` and `lucide-react`. Copy these, keeping the paths (they import
+each other through the `@/` alias → `src/`), plus the `.panel`, `.panel-solid`,
+`.field-input`, `.field-label`, `.btn-primary`, `.btn-ghost`, `.panel-title`
+and `.data-table` recipes and the `animate-*` tokens from `src/app/globals.css`:
+
+```
+src/components/table/   BaseTable  BaseGrid  ViewTabs  GroupBandRow  SortableList
+src/components/form/    FieldsPanel  FieldEditor  FilterPanel  GroupPanel  SortPanel  ColorRulesPanel
+src/components/overlay/ AnchoredPanel  ConfirmPopover  Drawer  Tooltip
+src/components/layout/  Tabs  EmptyState
+src/components/data/    OptionPill
+src/lib/                conditions  coloring  grouping  sort  fields  tones  toolbar
+                        use-dismiss  cn  dateUtils  events  initials  tooltip-position
+```
+
+Then mount it the way the gallery's demo does (`BaseTableDemo` in
+`src/registry/demos/index.tsx`): rows, columns and history in state or your
+data layer, `onRowChange` to save an edit, `onFieldAdd` / `onFieldChange` /
+`onFieldDelete` to save a column, and `views` + `onViewsChange` if views
+should live on the server rather than in the browser.
 
 ## Using a component
 
@@ -68,7 +131,8 @@ NotificationCard
    **Show code**.
 2. Copy the file at the path shown in its header into your project.
 3. Copy whatever it imports from `src/lib/` — those are small, pure and have no
-   dependencies of their own.
+   dependencies of their own. Every dropdown and picker imports `useDismiss`,
+   the one click-outside-or-Escape hook they all share.
 4. If it calls `useTheme` or `useSidebar`, copy `src/contexts/` too.
 
 Or import from the barrel if you vendor the whole `src/components` folder:
@@ -95,8 +159,9 @@ and no state library.
 
 ## Two things worth knowing before you build on it
 
-**Popovers: two ways to lose one.** Only four components render through a portal
-— `Tooltip`, `ConfirmPopover`, `Drawer` and `Modal`. Every other dropdown,
+**Popovers: two ways to lose one.** Only five components render through a portal
+— `Tooltip`, `ConfirmPopover`, `Drawer`, `Modal` and `AnchoredPanel` (plus the
+column menus inside `DataTable` and `BaseGrid`). Every other dropdown,
 calendar and filter panel positions itself *absolutely* inside its trigger, which
 leaves it exposed to both of these:
 
@@ -114,19 +179,19 @@ The z-index bands are documented at the top of the density section in
 overlays. Keep new popovers at 50 — the gaps exist so a menu opened over a table
 clears its sticky header.
 
-`npm run check:popovers` drives all fifteen in a real browser, opens them, and
+`npm run check:popovers` drives all sixteen in a real browser, opens them, and
 checks BOTH: it intersects every clipping ancestor's rect to measure what
 survives, and hit-tests five points with `elementFromPoint` to confirm nothing is
 painted on top. Neither failure is visible to `tsc` or `next build` — both stay
 green throughout.
 
-**Fill by growing, not by nesting a scroller.** For the same reason, `AppShell`
-keeps `<main>` as its single scroll container and fills space with
-`flex-1 min-h-full`. Giving a page or panel its own `overflow-auto` to make it
-"fit" clips the same components.
+**Fill by growing, not by nesting a scroller.** For the same reason, `Layout`
+keeps `<main>` as its single scroll container, and so does the gallery's own
+frame, which fills space with `flex-1 min-h-full`. Giving a page or panel its
+own `overflow-auto` to make it "fit" clips the same components.
 
-The gallery you are running is itself built from `AppShell` and `NavMenu` — the
-shell the docs live in is the shell the docs document.
+The gallery's frame (`src/components/gallery/DashShell.tsx`) puts the library's
+`NavMenu` in its sidebar, driven by the header search.
 
 ## Layout
 

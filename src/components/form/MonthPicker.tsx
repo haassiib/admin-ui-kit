@@ -5,7 +5,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { CalendarDays, ChevronDown, X } from 'lucide-react';
 import { MonthGrid } from './MonthGrid';
-import { businessToday, isFutureBusinessMonth } from '@/lib/dateUtils';
+import { businessToday, formatUtcMonthLabel, isFutureBusinessMonth, utcMonthStart } from '@/lib/dateUtils';
+import { useDismiss } from '@/lib/use-dismiss';
 
 interface MonthPickerProps {
   // YYYY-MM, or null/undefined for no selection.
@@ -38,8 +39,10 @@ function formatMonthValue(year: number, month: number): string {
   return `${year}-${String(month + 1).padStart(2, '0')}`;
 }
 
+// The same formatter MonthRangePicker uses, fed a UTC-anchored month start so
+// the two triggers cannot spell the same month differently.
 function formatLabel(year: number, month: number): string {
-  return new Date(year, month, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  return formatUtcMonthLabel(utcMonthStart(year, month));
 }
 
 export default function MonthPicker({
@@ -65,15 +68,7 @@ export default function MonthPicker({
     if (parsed) setViewYear(parsed.year);
   }, [value]);
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  useDismiss(popupRef, isOpen, () => setIsOpen(false));
 
   const handlePickMonth = (month: number) => {
     if (isMonthDisabled(viewYear, month)) return;
@@ -92,34 +87,29 @@ export default function MonthPicker({
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled}
-        className={`w-full px-4 py-2 text-left border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-          disabled
-            ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed'
-            : 'bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 active:scale-[0.98]'
-        }`}
+        className={`field-input text-left ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
       >
         <div className="flex items-center justify-between gap-2">
-          <span className="flex items-center gap-2 text-gray-700 dark:text-gray-200 truncate">
-            <CalendarDays size={16} className="flex-shrink-0 text-indigo-500 dark:text-indigo-400" />
-            <span className={`truncate ${!parsed ? 'text-gray-400 dark:text-gray-500' : ''}`}>
+          <span className="flex min-w-0 items-center gap-2 truncate">
+            <CalendarDays className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden />
+            <span className={`truncate ${!parsed ? 'text-slate-400 dark:text-slate-500' : ''}`}>
               {parsed ? formatLabel(parsed.year, parsed.month) : placeholder}
             </span>
           </span>
           <span className="flex items-center gap-1 flex-shrink-0">
             {allowClear && parsed && !disabled && (
               <X
-                size={14}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="h-3.5 w-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                 onClick={(e) => { e.stopPropagation(); onChange(null); }}
               />
             )}
-            <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
           </span>
         </div>
       </button>
 
       {isOpen && !disabled && (
-        <div className="absolute z-50 top-full right-0 mt-2 origin-top-right bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-gray-200/70 dark:border-gray-700/70 rounded-2xl shadow-xl z-30 p-4 w-72 animate-scale-in">
+        <div data-overlay="picker" className="absolute right-0 top-full z-50 mt-1 w-72 origin-top-right panel panel-solid p-3 animate-scale-in">
           <MonthGrid
             year={viewYear}
             selectedYear={parsed?.year ?? -1}
@@ -130,10 +120,11 @@ export default function MonthPicker({
           />
 
           {allowClear && (
-            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+            <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700 flex justify-end">
               <button
+                type="button"
                 onClick={handleClear}
-                className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                className="px-3 py-2 text-xs text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
               >
                 Clear
               </button>

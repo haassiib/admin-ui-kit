@@ -13,10 +13,10 @@ export default function RankedBars({ rows }: { rows: RankedRow[] }) {
   const t = useChartTheme();
 
   return (
-    <div className="panel mb-0">
-      <h2>Top Items by Spend</h2>
+    <div className="panel p-5">
+      <h2 className="panel-title mb-3">Top Items by Spend</h2>
       {rows.length === 0 ? (
-        <div className="flex h-[320px] items-center justify-center text-sm text-gray-400 dark:text-gray-500">No data for the selected period.</div>
+        <div className="flex h-[320px] items-center justify-center text-xs text-slate-400 dark:text-slate-500">No data for the selected period.</div>
       ) : (
         <div style={{ height: Math.max(220, rows.length * 40 + 24) }}>
           <ResponsiveContainer width="100%" height="100%">

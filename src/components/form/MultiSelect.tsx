@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { ChevronDown, Search, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { useDismiss } from '@/lib/use-dismiss';
 import Checkbox from './Checkbox';
 
 /**
@@ -50,13 +51,7 @@ export default function MultiSelect({
   const [query, setQuery] = useState('');
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const onDown = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', onDown);
-    return () => document.removeEventListener('mousedown', onDown);
-  }, []);
+  useDismiss(ref, open, () => setOpen(false));
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -108,7 +103,7 @@ export default function MultiSelect({
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full panel p-2 max-h-72 overflow-y-auto custom-scrollbar">
+        <div data-overlay="picker" className="absolute z-50 mt-1 w-full panel panel-solid p-2 max-h-72 overflow-y-auto custom-scrollbar">
           {searchable && options.length > 6 && (
             <div className="relative mb-2">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />

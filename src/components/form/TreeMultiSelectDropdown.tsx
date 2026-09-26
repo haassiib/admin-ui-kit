@@ -34,6 +34,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, ChevronRight, ChevronsUpDown, Plus, X } from 'lucide-react';
+import { useDismiss } from '@/lib/use-dismiss';
 
 export interface TreeOption {
   /** Must be unique across the ENTIRE tree, not just among siblings — a
@@ -151,7 +152,7 @@ function TreeRow({ node, depth, isExpanded, onToggleExpand, onAddNode }: TreeRow
   return (
     <li>
       <div
-        className="flex items-center gap-1.5 py-1.5 pr-2 rounded-lg text-sm text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 cursor-pointer transition-colors"
+        className="flex items-center gap-1.5 py-1.5 pr-2 rounded-lg text-xs text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 cursor-pointer transition-colors"
         style={{ paddingLeft: depth * 18 + 4 }}
         onClick={() => onAddNode(node)}
       >
@@ -159,7 +160,7 @@ function TreeRow({ node, depth, isExpanded, onToggleExpand, onAddNode }: TreeRow
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onToggleExpand(node.id); }}
-            className="p-0.5 flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="p-0.5 flex-shrink-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
             aria-label={expanded ? `Collapse ${node.label}` : `Expand ${node.label}`}
           >
             {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -168,7 +169,7 @@ function TreeRow({ node, depth, isExpanded, onToggleExpand, onAddNode }: TreeRow
           <span className="w-[18px] flex-shrink-0" />
         )}
         <span className="truncate flex-1 min-w-0">{node.label}</span>
-        <Plus size={14} className="flex-shrink-0 text-gray-400" />
+        <Plus size={14} className="flex-shrink-0 text-slate-400" />
       </div>
       {hasChildren && expanded && (
         <ul>
@@ -205,16 +206,10 @@ export function TreeMultiSelectDropdown({
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    const handleOutsideClick = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-        setSearchQuery('');
-      }
-    };
-    document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, []);
+  useDismiss(containerRef, isOpen, () => {
+    setIsOpen(false);
+    setSearchQuery('');
+  });
 
   useEffect(() => {
     if (disabled) {
@@ -312,7 +307,7 @@ export function TreeMultiSelectDropdown({
   return (
     <div className={`relative ${className}`} ref={containerRef}>
       <div
-        className={`flex items-center gap-2 p-2 border border-gray-300 dark:border-gray-600 rounded-lg ${disabled ? 'cursor-not-allowed bg-gray-100 dark:bg-gray-800 opacity-60' : 'cursor-text bg-white dark:bg-gray-700'}`}
+        className={`field-input flex items-center gap-2 ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-text'}`}
         onClick={() => !disabled && inputRef.current?.focus()}
       >
         <input
@@ -331,19 +326,19 @@ export function TreeMultiSelectDropdown({
           placeholder={isOpen ? searchPlaceholder : placeholder}
           autoComplete="off"
           disabled={disabled}
-          className="flex-1 min-w-0 bg-transparent outline-none border-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 disabled:cursor-not-allowed"
+          className="flex-1 min-w-0 bg-transparent outline-none border-none text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 disabled:cursor-not-allowed"
         />
         {!disabled && value.length > 0 && (
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); handleClearAll(); }}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0"
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 flex-shrink-0"
             aria-label="Clear all selected"
           >
-            <X size={14} />
+            <X className="h-3.5 w-3.5" />
           </button>
         )}
-        <ChevronsUpDown size={16} className="text-gray-400 flex-shrink-0" />
+        <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden />
       </div>
 
       {isOpen && (
@@ -353,7 +348,7 @@ export function TreeMultiSelectDropdown({
         // Two columns (tree left, Selected right) — same split MultiSelectDropdown
         // uses for its flat Available/Selected panes, so a selection stays visible
         // and individually removable without hunting through the tree for its checkbox.
-        <div className="absolute z-50 w-full min-w-[440px] mt-1 bg-white/95 dark:bg-gray-700/95 backdrop-blur-xl border border-gray-200/70 dark:border-gray-600/70 rounded-xl shadow-lg animate-fade-in grid grid-cols-2 divide-x divide-gray-200/70 dark:divide-gray-600/70">
+        <div data-overlay="picker" className="absolute z-50 mt-1 w-full min-w-[440px] panel panel-solid p-0 overflow-hidden animate-fade-in grid grid-cols-2 divide-x divide-slate-200 dark:divide-slate-700">
           <div className="p-2 min-w-0">
             <ul className="max-h-80 overflow-y-auto space-y-0.5 scrollbar-thin">
               {visibleTree.length > 0 ? (
@@ -368,18 +363,18 @@ export function TreeMultiSelectDropdown({
                   />
                 ))
               ) : (
-                <li className="px-2 py-1.5 text-sm text-gray-500 dark:text-gray-400">{emptyText}</li>
+                <li className="px-2 py-1.5 text-[11px] text-slate-400">{emptyText}</li>
               )}
             </ul>
           </div>
           <div className="p-2 min-w-0">
             <div className="flex items-center justify-between gap-2 px-1 pb-1">
-              <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 truncate">Selected ({selectedLeaves.length})</span>
+              <span className="panel-title truncate">Selected ({selectedLeaves.length})</span>
               {selectedLeaves.length > 0 && (
                 <button
                   type="button"
                   onClick={handleClearAll}
-                  className="pr-3 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex-shrink-0"
+                  className="pr-3 text-[11px] font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex-shrink-0"
                 >
                   Clear all
                 </button>
@@ -395,8 +390,8 @@ export function TreeMultiSelectDropdown({
                         title={`Remove all in ${group}`}
                         className="group/header flex items-center justify-between gap-1 px-2 pb-1 cursor-pointer"
                       >
-                        <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 truncate">{group}</span>
-                        <X size={13} className="flex-shrink-0 text-gray-400 opacity-0 group-hover/header:opacity-100 hover:text-red-500 transition-opacity" />
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 truncate">{group}</span>
+                        <X size={13} className="flex-shrink-0 text-slate-400 opacity-0 group-hover/header:opacity-100 hover:text-rose-500 transition-opacity" />
                       </div>
                     )}
                     <ul className="space-y-0.5 pl-2">
@@ -404,7 +399,7 @@ export function TreeMultiSelectDropdown({
                         <li
                           key={leaf.id}
                           onClick={() => handleDeselectLeaf(leaf.id)}
-                          className="flex items-center justify-between gap-1 px-2 py-1.5 text-sm rounded-lg text-indigo-800 dark:text-indigo-200 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 cursor-pointer transition-colors"
+                          className="flex items-center justify-between gap-1 px-2 py-1.5 text-xs rounded-lg text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 cursor-pointer transition-colors"
                         >
                           <span className="truncate">{leaf.label}</span>
                           <X size={13} className="flex-shrink-0" />
@@ -414,7 +409,7 @@ export function TreeMultiSelectDropdown({
                   </li>
                 ))
               ) : (
-                <li className="px-2 py-1.5 text-sm text-gray-500 dark:text-gray-400">None selected</li>
+                <li className="px-2 py-1.5 text-[11px] text-slate-400">None selected</li>
               )}
             </ul>
           </div>

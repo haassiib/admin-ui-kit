@@ -3,9 +3,10 @@
 /* Origin: bonus-adjustment (96S2), verbatim. */
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { ChevronDown, KeyRound, LogOut, User } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { useDismiss } from '@/lib/use-dismiss';
 import Avatar from './Avatar';
 
 export type DropdownUser = {
@@ -31,13 +32,7 @@ export default function UserDropdown({
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const onDown = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', onDown);
-    return () => document.removeEventListener('mousedown', onDown);
-  }, []);
+  useDismiss(ref, open, () => setOpen(false));
 
   const itemClasses =
     'w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left rounded-lg transition-colors text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800';

@@ -13,9 +13,9 @@
  */
 
 import { useRef, useState } from 'react';
+import { cn } from '@/lib/cn';
 import { RefreshCw } from 'lucide-react';
 import Splitter from '@/components/layout/Splitter';
-import Layout, { type SidebarPosition } from '@/components/layout/Layout';
 import NavMenu from '@/components/layout/NavMenu';
 import Button from '@/components/layout/Button';
 import Badge from '@/components/data/Badge';
@@ -28,6 +28,18 @@ import DataTable, { type Column } from '@/components/table/DataTable';
 import { CombinedFilterDropdown, type FilterValue } from '@/components/form/CombinedFilterDropdown';
 import Drawer from '@/components/overlay/Drawer';
 import Card from '@/components/layout/Card';
+import BaseGrid, { columnFromField, type GridColumn, type GridView } from '@/components/table/BaseGrid';
+import AnchoredPanel, { anchorOf, closestPanelRect, type Anchor } from '@/components/overlay/AnchoredPanel';
+import OptionPill from '@/components/data/OptionPill';
+import { TASKS, TASK_COLUMNS, TASK_EXTRA, TASK_PRIORITY, TASK_STATUS, type Task } from './fixtures';
+import BarChart from '@/components/data/BarChart';
+import LineChart from '@/components/data/LineChart';
+import { compactCurrency } from '@/components/data/chartTheme';
+import { MRR_BY_PLAN, PLAN_SERIES, REGION_SERIES, TICKETS_BY_TEAM, WAU_BY_REGION } from './fixtures';
+import Carousel from '@/components/media/Carousel';
+import { SegmentedControl } from '@/components/layout/ButtonGroup';
+import Checkbox from '@/components/form/Checkbox';
+import { Minus, Plus } from 'lucide-react';
 import { DEMOS } from './demos/map';
 import { EXAMPLE_META, type ExampleMeta } from './examples';
 
@@ -97,60 +109,6 @@ function SplitterNested() {
         }
       />
     </Frame>
-  );
-}
-
-/* --------------------------------------------------------------- Layout --- */
-
-const SHELL_SECTIONS = [
-  { label: 'Workspace', items: [{ label: 'Overview', href: '/' }, { label: 'Members', href: '/members' }] },
-  { label: 'Settings', items: [{ label: 'Billing', href: '/billing' }, { label: 'Roles', href: '/roles' }] },
-];
-
-/**
- * The shell is `h-screen`, so previewing it inside a page needs a frame that
- * bounds it — otherwise it takes over the document it is being shown in.
- */
-function ShellFrame({ position }: { position: SidebarPosition }) {
-  const horizontal = position === 'top' || position === 'bottom';
-  return (
-    <div className="h-[26rem] overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
-      <div className="h-full [&>div]:h-full">
-        <Layout
-          sidebarPosition={position}
-          sidebarWidth="w-48"
-          brand={<span className="text-sm font-bold text-slate-900 dark:text-white">Acme</span>}
-          actions={<Badge tone="info">Pro</Badge>}
-          sidebar={
-            <NavMenu
-              sections={SHELL_SECTIONS}
-              activeHref="/members"
-              orientation={horizontal ? 'horizontal' : 'vertical'}
-              showSectionLabels={!horizontal}
-            />
-          }
-        >
-          <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Members</h2>
-          <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-            Navigation is on the <strong>{position}</strong>.
-          </p>
-        </Layout>
-      </div>
-    </div>
-  );
-}
-
-function LayoutPositions() {
-  const [position, setPosition] = useState<SidebarPosition>('left');
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap gap-2">
-        {(['left', 'right', 'top', 'bottom'] as const).map((pos) => (
-          <Button key={pos} size="sm" variant={position === pos ? 'primary' : 'secondary'} onClick={() => setPosition(pos)}>{pos}</Button>
-        ))}
-      </div>
-      <ShellFrame position={position} />
-    </div>
   );
 }
 
@@ -464,6 +422,8 @@ function PaginationBasic() {
 function PaginationVariants() {
   const [variant, setVariant] = useState<'bar' | 'pill' | 'floating'>('bar');
   const [navigation, setNavigation] = useState<'pages' | 'input'>('pages');
+  const [template, setTemplate] = useState('');
+  const shared = { variant, navigation, pageSizes: [10, 25, 50], reportTemplate: template || undefined };
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
@@ -474,11 +434,17 @@ function PaginationVariants() {
         {(['pages', 'input'] as const).map((n) => (
           <Button key={n} size="sm" variant={navigation === n ? 'primary' : 'secondary'} onClick={() => setNavigation(n)}>{n}</Button>
         ))}
+        <span className="mx-1 h-4 w-px bg-slate-200 dark:bg-slate-700" />
+        <select value={template} onChange={(e) => setTemplate(e.target.value)} aria-label="Report template" className="field-input h-7 w-auto py-0.5 text-xs">
+          <option value="">1–25 of 1,204 members</option>
+          <option value="Showing {first} to {last} of {total}">Showing {'{first}'} to {'{last}'} of {'{total}'}</option>
+          <option value="Page {page} of {totalPages}">Page {'{page}'} of {'{totalPages}'}</option>
+        </select>
       </div>
       {variant === 'bar' ? (
-        <Boxed><Pagination {...usePager()} variant={variant} navigation={navigation} /></Boxed>
+        <Boxed><Pagination {...usePager()} {...shared} /></Boxed>
       ) : (
-        <Pagination {...usePager()} variant={variant} navigation={navigation} />
+        <Pagination {...usePager()} {...shared} />
       )}
     </div>
   );
@@ -664,10 +630,466 @@ function DataTableStates() {
 /* ------------------------------------------------------------------------- */
 
 /** slug -> example id -> component. Joined to `EXAMPLE_META` by id. */
+/* ------------------------------------------------ Lark-Base-style grid --- */
+
+function BaseGridBasic() {
+  const [rows, setRows] = useState(TASKS);
+  const [columns, setColumns] = useState<GridColumn<Task>[]>(TASK_COLUMNS);
+  return (
+    <BaseGrid
+      columns={columns}
+      rows={rows}
+      getRowId={(t) => t.id}
+      noun="task"
+      maxHeight={420}
+      onRowChange={(next) => setRows((prev) => prev.map((r) => (r.id === next.id ? next : r)))}
+      // A field added here is a column built from its definition; its values
+      // live in each task's `extra` bag through the TASK_EXTRA accessors.
+      onFieldAdd={(f) => setColumns((prev) => [...prev, columnFromField(f, TASK_EXTRA)])}
+      // A column declared in code keeps its own `value`/`set` and takes only
+      // the new label and options; a runtime field is rebuilt entirely.
+      onFieldChange={(key, f) =>
+        setColumns((prev) =>
+          prev.map((c) => (c.key !== key ? c : c.type ? columnFromField(f, TASK_EXTRA) : { ...c, label: f.label, options: f.options })),
+        )
+      }
+      onFieldDelete={(key) => setColumns((prev) => prev.filter((c) => c.key !== key))}
+    />
+  );
+}
+
+function BaseGridPreset() {
+  const [rows, setRows] = useState(TASKS);
+  const [view, setView] = useState<GridView>({
+    conditions: [{ field: 'status', op: 'isNot', value: 'done' }],
+    match: 'all',
+    groups: [{ by: 'team', dir: 'asc' }, { by: 'priority', dir: 'desc' }],
+    sorts: [{ key: 'due', dir: 'asc' }],
+    fields: { order: [], hidden: ['owner'], labels: {} },
+    colors: [
+      { id: 'urgent', scope: 'row', field: 'priority', op: 'is', value: 'urgent', tone: 'rose' },
+      { id: 'review', scope: 'cell', field: 'status', op: 'is', value: 'review', tone: 'amber' },
+      { id: 'overdue', scope: 'cell', field: 'due', op: 'before', value: 'rel:today', tone: 'orange' },
+    ],
+  });
+  return (
+    <div className="space-y-2">
+      <BaseGrid
+        columns={TASK_COLUMNS}
+        rows={rows}
+        getRowId={(t) => t.id}
+        noun="task"
+        view={view}
+        onViewChange={setView}
+        onRowChange={(next) => setRows((prev) => prev.map((r) => (r.id === next.id ? next : r)))}
+        maxHeight={480}
+      />
+      <pre className="overflow-x-auto rounded-md bg-slate-100 px-2 py-1 font-mono text-[10px] text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+        {JSON.stringify({ conditions: view.conditions, groups: view.groups, sorts: view.sorts, hidden: view.fields?.hidden, colors: view.colors.length })}
+      </pre>
+    </div>
+  );
+}
+
+/**
+ * A record form beside its row, and a second panel beside THAT for the
+ * status options — the dialog-inside-a-dialog case. Local state only: Save
+ * writes the draft back into the rows the grid is showing.
+ */
+function BaseGridRecord() {
+  const [rows, setRows] = useState<Task[]>(TASKS);
+  const [statuses, setStatuses] = useState(TASK_STATUS);
+  const [editing, setEditing] = useState<{ task: Task; anchor: Anchor } | null>(null);
+  const [draft, setDraft] = useState<Task | null>(null);
+  const [manage, setManage] = useState<Anchor | null>(null);
+  const [newStatus, setNewStatus] = useState('');
+
+  const columns = TASK_COLUMNS.map((c) => (c.key === 'status' ? { ...c, options: statuses } : c));
+  const closeAll = () => { setEditing(null); setDraft(null); setManage(null); };
+
+  return (
+    <>
+      <BaseGrid
+        columns={columns}
+        rows={rows}
+        getRowId={(t) => t.id}
+        noun="task"
+        maxHeight={420}
+        onRowChange={(next) => setRows((prev) => prev.map((r) => (r.id === next.id ? next : r)))}
+        onRowOpen={(task, rect) => {
+          setDraft({ ...task });
+          setEditing({ task, anchor: { top: rect.top, left: rect.left, right: rect.right, bottom: rect.bottom } });
+        }}
+      />
+
+      <AnchoredPanel
+        open={editing !== null}
+        anchor={editing?.anchor ?? null}
+        onClose={closeAll}
+        title={editing ? `Task #${editing.task.id}` : ''}
+        subtitle={editing?.task.owner}
+        width={380}
+        footer={
+          <div className="flex justify-end gap-2">
+            <button type="button" className="btn-ghost text-xs" onClick={closeAll}>Cancel</button>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => {
+                if (draft) setRows((prev) => prev.map((r) => (r.id === draft.id ? draft : r)));
+                closeAll();
+              }}
+            >
+              Save
+            </button>
+          </div>
+        }
+      >
+        {draft && (
+          <div className="space-y-3 p-3">
+            <label className="block">
+              <span className="field-label">Title</span>
+              <input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} className="field-input" />
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block">
+                <span className="field-label">Status</span>
+                <select value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value as Task['status'] })} className="field-input">
+                  {statuses.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+                {/* Anchored to the PANEL, not the button — `closestPanelRect`. */}
+                <button type="button" className="mt-1 text-[11px] font-medium text-indigo-600 hover:underline dark:text-indigo-400" onClick={(e) => setManage(closestPanelRect(e.currentTarget))}>
+                  Manage statuses…
+                </button>
+              </label>
+              <label className="block">
+                <span className="field-label">Priority</span>
+                <select value={draft.priority} onChange={(e) => setDraft({ ...draft, priority: e.target.value as Task['priority'] })} className="field-input">
+                  {TASK_PRIORITY.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </label>
+              <label className="block">
+                <span className="field-label">Estimate</span>
+                <input type="number" value={draft.estimate ?? ''} onChange={(e) => setDraft({ ...draft, estimate: e.target.value === '' ? null : Number(e.target.value) })} className="field-input" />
+              </label>
+              <label className="block">
+                <span className="field-label">Due</span>
+                <input type="date" value={draft.due ?? ''} onChange={(e) => setDraft({ ...draft, due: e.target.value || null })} className="field-input" />
+              </label>
+            </div>
+          </div>
+        )}
+      </AnchoredPanel>
+
+      <AnchoredPanel open={manage !== null} anchor={manage} onClose={() => setManage(null)} title="Statuses" subtitle={`${statuses.length} options`} width={280}>
+        <div className="space-y-2 p-3">
+          <ul className="space-y-1">
+            {statuses.map((o) => (
+              <li key={o.value} className="flex items-center justify-between gap-2 rounded px-1 py-0.5">
+                <OptionPill label={o.label} tone={o.tone} />
+                <button type="button" aria-label={`Remove ${o.label}`} className="text-slate-400 hover:text-rose-600" onClick={() => setStatuses(statuses.filter((x) => x.value !== o.value))}>×</button>
+              </li>
+            ))}
+          </ul>
+          <form
+            className="flex gap-1.5"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const label = newStatus.trim();
+              if (!label) return;
+              setStatuses([...statuses, { value: label.toLowerCase().replace(/\s+/g, '-'), label }]);
+              setNewStatus('');
+            }}
+          >
+            <input value={newStatus} onChange={(e) => setNewStatus(e.target.value)} placeholder="New status" className="field-input min-w-0 flex-1 py-1.5 text-xs" />
+            <button type="submit" className="btn-primary">Add</button>
+          </form>
+        </div>
+      </AnchoredPanel>
+    </>
+  );
+}
+
+function AnchoredPanelNested() {
+  const [outer, setOuter] = useState<Anchor | null>(null);
+  const [inner, setInner] = useState<Anchor | null>(null);
+  const [options, setOptions] = useState(TASK_STATUS.map((o) => o.label));
+  const [draft, setDraft] = useState('');
+  const close = () => { setOuter(null); setInner(null); };
+  return (
+    <div>
+      <Button variant="secondary" onClick={(e) => setOuter(anchorOf(e.currentTarget))}>Edit field</Button>
+      <AnchoredPanel
+        open={outer !== null}
+        anchor={outer}
+        onClose={close}
+        title="Edit field"
+        subtitle="Status · single select"
+        footer={<div className="flex justify-end gap-2"><button type="button" className="btn-ghost text-xs" onClick={close}>Cancel</button><button type="button" className="btn-primary" onClick={close}>Save</button></div>}
+      >
+        <div className="space-y-3 p-3">
+          <label className="block"><span className="field-label">Label</span><input defaultValue="Status" className="field-input" /></label>
+          <div>
+            <span className="field-label">Options</span>
+            <div className="flex flex-wrap gap-1">{options.map((o, i) => <OptionPill key={o} label={o} tone={TASK_STATUS[i]?.tone} />)}</div>
+            <button type="button" className="btn-ghost mt-2 text-xs" onClick={(e) => setInner(closestPanelRect(e.currentTarget))}>Manage options…</button>
+          </div>
+        </div>
+      </AnchoredPanel>
+      <AnchoredPanel open={inner !== null} anchor={inner} onClose={() => setInner(null)} title="Options" subtitle={`${options.length} choices`} width={300}>
+        <div className="space-y-2 p-3">
+          <ul className="space-y-1">
+            {options.map((o) => (
+              <li key={o} className="flex items-center justify-between gap-2 rounded px-2 py-1 text-xs">
+                {o}
+                <button type="button" aria-label={`Remove ${o}`} className="text-slate-400 hover:text-rose-600" onClick={() => setOptions(options.filter((x) => x !== o))}>×</button>
+              </li>
+            ))}
+          </ul>
+          <form className="flex gap-1.5" onSubmit={(e) => { e.preventDefault(); if (draft.trim()) { setOptions([...options, draft.trim()]); setDraft(''); } }}>
+            <input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="New option" className="field-input min-w-0 flex-1 py-1.5 text-xs" />
+            <button type="submit" className="btn-primary">Add</button>
+          </form>
+        </div>
+      </AnchoredPanel>
+    </div>
+  );
+}
+
+function AnchoredPanelPlacement() {
+  const [placement, setPlacement] = useState<'beside' | 'below'>('beside');
+  const [anchor, setAnchor] = useState<Anchor | null>(null);
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        {(['beside', 'below'] as const).map((p) => (
+          <Button key={p} size="sm" variant={placement === p ? 'primary' : 'secondary'} onClick={() => { setPlacement(p); setAnchor(null); }}>{p}</Button>
+        ))}
+      </div>
+      <div className="w-72 rounded-xl border border-dashed border-slate-300 p-4 text-xs text-slate-500 dark:border-slate-600">
+        A card the panel belongs to.
+        <div className="mt-2"><Button variant="secondary" size="sm" onClick={(e) => setAnchor(anchorOf(e.currentTarget.parentElement!.parentElement))}>Open {placement}</Button></div>
+      </div>
+      <AnchoredPanel open={anchor !== null} anchor={anchor} onClose={() => setAnchor(null)} title={`Placed ${placement}`} placement={placement} width={300}>
+        <p className="p-3 text-xs text-slate-600 dark:text-slate-300">
+          {placement === 'beside' ? 'Right of the card, top-aligned; left of it when the right side does not fit.' : 'Under the card, left edges aligned; right edges when that does not fit.'}
+        </p>
+      </AnchoredPanel>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------- charts --- */
+
+function BarChartGrouped() {
+  return <BarChart title="MRR by plan" data={MRR_BY_PLAN} x="month" series={PLAN_SERIES} format={compactCurrency} />;
+}
+
+function BarChartStacked() {
+  return <BarChart title="MRR by plan" data={MRR_BY_PLAN} x="month" series={PLAN_SERIES} stacked format={compactCurrency} />;
+}
+
+function BarChartHorizontal() {
+  return (
+    <BarChart
+      title="Open tickets by team"
+      data={TICKETS_BY_TEAM}
+      x="team"
+      series={[{ key: 'open', label: 'Open', slot: 0 }, { key: 'overdue', label: 'Overdue', slot: 1 }]}
+      horizontal
+    />
+  );
+}
+
+function LineChartMulti() {
+  return <LineChart title="Weekly active users" data={WAU_BY_REGION} x="week" series={REGION_SERIES} />;
+}
+
+function LineChartEmphasis() {
+  return <LineChart title="Asia-Pacific is where the growth is" data={WAU_BY_REGION} x="week" series={REGION_SERIES} emphasis="apac" />;
+}
+
+/* ------------------------------------------------------------- Carousel --- */
+
+const PHOTO_SEEDS = ['lake', 'forest', 'desert', 'harbor', 'meadow', 'canyon', 'glacier', 'valley'];
+const photo = (seed: string, w: number, h: number) => `https://picsum.photos/seed/${seed}/${w}/${h}`;
+
+function PhotoCard({ seed, n, tall = false }: { seed: string; n: number; tall?: boolean }) {
+  return (
+    <div className="panel panel-solid h-full overflow-hidden">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={photo(seed, 480, 300)}
+        alt=""
+        loading="lazy"
+        className={`${tall ? 'h-24' : 'aspect-[16/10]'} w-full bg-slate-100 object-cover dark:bg-slate-800`}
+      />
+      <div className="px-3 py-2">
+        <p className="text-xs font-semibold text-slate-800 dark:text-slate-100">Photo {n}</p>
+        <p className="text-[11px] text-slate-500 dark:text-slate-400">Random sample image</p>
+      </div>
+    </div>
+  );
+}
+
+function CarouselLayout() {
+  const [perPage, setPerPage] = useState<'1' | '1.5' | '2.5' | '3'>('1.5');
+  const [align, setAlign] = useState<'start' | 'center'>('start');
+  const [orientation, setOrientation] = useState<'horizontal' | 'vertical'>('horizontal');
+  const [loop, setLoop] = useState(false);
+  const [autoplay, setAutoplay] = useState(false);
+  const vertical = orientation === 'vertical';
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <SegmentedControl
+          aria-label="Slides per page"
+          size="sm"
+          value={perPage}
+          onChange={setPerPage}
+          options={(['1', '1.5', '2.5', '3'] as const).map((v) => ({ value: v, label: `${v} per page` }))}
+        />
+        <SegmentedControl
+          aria-label="Alignment"
+          size="sm"
+          value={align}
+          onChange={setAlign}
+          options={[{ value: 'start', label: 'Start' }, { value: 'center', label: 'Center' }]}
+        />
+        <SegmentedControl
+          aria-label="Orientation"
+          size="sm"
+          value={orientation}
+          onChange={setOrientation}
+          options={[{ value: 'horizontal', label: 'Horizontal' }, { value: 'vertical', label: 'Vertical' }]}
+        />
+        <Checkbox id="carousel-loop" checked={loop} onChange={setLoop} label="Loop" />
+        <Checkbox id="carousel-autoplay" checked={autoplay} onChange={setAutoplay} label="Autoplay" />
+      </div>
+      <Carousel
+        items={PHOTO_SEEDS}
+        itemKey={(seed) => seed}
+        numVisible={Number(perPage)}
+        align={align}
+        orientation={orientation}
+        circular={loop}
+        autoplayInterval={autoplay ? 3000 : 0}
+        verticalViewportHeight="360px"
+        responsiveOptions={perPage === '3' ? [{ breakpoint: 560, numVisible: 1.5, numScroll: 1 }] : undefined}
+        aria-label="Sample photos"
+        className={vertical ? 'max-w-xs' : undefined}
+        itemTemplate={(seed, i) => <PhotoCard seed={seed} n={i + 1} tall={vertical} />}
+      />
+    </div>
+  );
+}
+
+type Chip = { id: number; label: string; width: number };
+const CHIP_LABELS = ['Design', 'Engineering', 'Ops', 'Customer success', 'Finance', 'Legal & compliance', 'QA', 'Research', 'Marketing', 'Data platform'];
+const chipAt = (id: number): Chip => ({ id, label: CHIP_LABELS[id % CHIP_LABELS.length], width: [128, 208, 96, 240, 144, 256, 88, 160][id % 8] });
+
+function CarouselVariable() {
+  const [chips, setChips] = useState<Chip[]>(() => Array.from({ length: 6 }, (_, i) => chipAt(i)));
+  const next = useRef(6);
+  const [page, setPage] = useState(0);
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2">
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={() => {
+            setChips((c) => [...c, chipAt(next.current++)]);
+            // Jump to the end, where the new card went; the carousel clamps the page to the last stop.
+            setPage(Number.MAX_SAFE_INTEGER);
+          }}
+        >
+          <Plus className="h-3.5 w-3.5" aria-hidden /> Add card
+        </Button>
+        <Button size="sm" variant="secondary" disabled={chips.length === 0} onClick={() => setChips((c) => c.slice(0, -1))}>
+          <Minus className="h-3.5 w-3.5" aria-hidden /> Remove card
+        </Button>
+        <span className="text-[11px] text-slate-500 dark:text-slate-400">{chips.length} cards</span>
+      </div>
+      <Carousel
+        items={chips}
+        itemKey={(c) => c.id}
+        autoSize
+        numScroll={2}
+        page={page}
+        onPageChange={setPage}
+        aria-label="Teams"
+        itemTemplate={(c) => (
+          <div style={{ width: c.width }} className="panel panel-solid px-3 py-3">
+            <p className="truncate text-xs font-semibold text-slate-800 dark:text-slate-100">{c.label}</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">{c.width}px wide</p>
+          </div>
+        )}
+      />
+    </div>
+  );
+}
+
+function CarouselGallery() {
+  const [active, setActive] = useState(0);
+  const THUMBS = 5;
+  return (
+    <div className="flex max-w-2xl flex-col gap-2">
+      <Carousel
+        items={PHOTO_SEEDS}
+        itemKey={(seed) => seed}
+        page={active}
+        onPageChange={setActive}
+        showIndicators={false}
+        aria-label="Photos"
+        itemTemplate={(seed, i) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={photo(seed, 1200, 675)} alt={`Sample photo ${i + 1}`} className="aspect-video w-full rounded-lg bg-slate-100 object-cover dark:bg-slate-800" />
+        )}
+      />
+      {/* Follows the main strip: the active thumbnail stays in view, centred once there is room. */}
+      <Carousel
+        items={PHOTO_SEEDS}
+        itemKey={(seed) => seed}
+        numVisible={THUMBS}
+        // No arrows of its own: a second pair would move the strip away from
+        // the photo it is meant to track. The carousel clamps this near the end.
+        page={Math.max(0, active - Math.floor(THUMBS / 2))}
+        showNavigators={false}
+        showIndicators={false}
+        aria-label="Thumbnails"
+        // Inset by the main strip's arrow gutters (a 28px button and a 6px gap), so the two line up.
+        className="px-[34px]"
+        itemTemplate={(seed, i) => (
+          // `py-1`: room for the active ring, which the viewport would otherwise clip.
+          <div className="py-1">
+          <button
+            type="button"
+            onClick={() => setActive(i)}
+            aria-label={`Show photo ${i + 1}`}
+            aria-current={i === active || undefined}
+            className={cn(
+              'block w-full overflow-hidden rounded-md ring-2 ring-offset-1 ring-offset-white transition-opacity focus-visible:outline-none focus-visible:ring-indigo-400 dark:ring-offset-slate-900',
+              i === active ? 'ring-indigo-500 dark:ring-indigo-400' : 'ring-transparent opacity-60 hover:opacity-100',
+            )}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={photo(seed, 160, 100)} alt="" className="aspect-[16/10] w-full bg-slate-100 object-cover dark:bg-slate-800" />
+          </button>
+          </div>
+        )}
+      />
+    </div>
+  );
+}
+
 export const EXAMPLE_DEMOS: Record<string, Record<string, React.ComponentType>> = {
+  'bar-chart': { 'grouped': BarChartGrouped, 'stacked': BarChartStacked, 'horizontal': BarChartHorizontal },
+  'line-chart': { 'multi': LineChartMulti, 'emphasis': LineChartEmphasis },
+  'base-grid': { 'basic': BaseGridBasic, 'preset': BaseGridPreset, 'record': BaseGridRecord },
+  'anchored-panel': { 'nested': AnchoredPanelNested, 'placement': AnchoredPanelPlacement },
   'drawer': { 'basic': DrawerBasic, 'anchored': DrawerAnchored, 'options': DrawerOptions },
   'combined-filter-dropdown': { 'chips': CombinedFilterDropdownChips, 'summary': CombinedFilterDropdownSummary, 'empty': CombinedFilterDropdownEmpty },
-  'layout': { 'positions': LayoutPositions },
   'nav-menu': { 'vertical': NavMenuVertical, 'horizontal': NavMenuHorizontal, 'filtering': NavMenuFiltering },
   'splitter': { 'basic': SplitterBasic, 'sizing': SplitterSizing, 'nested': SplitterNested },
   'button': { 'variants': ButtonVariants, 'sizes': ButtonSizes, 'loading': ButtonLoading },
@@ -677,6 +1099,7 @@ export const EXAMPLE_DEMOS: Record<string, Record<string, React.ComponentType>> 
   'tooltip': { 'placement': TooltipPlacement, 'appearance': TooltipAppearance, 'info': TooltipInfo },
   'progress': { 'basic': ProgressBasic, 'clamped': ProgressClamped },
   'data-table': { 'basic': DataTableBasic, 'full': DataTableFull, 'states': DataTableStates },
+  'carousel': { 'layout': CarouselLayout, 'variable': CarouselVariable, 'gallery': CarouselGallery },
 };
 
 export type Example = ExampleMeta & { Demo: React.ComponentType };

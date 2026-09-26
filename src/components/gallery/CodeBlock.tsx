@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Check, Copy } from 'lucide-react';
+import { cn } from '@/lib/cn';
 
 /**
  * Minimal TS/TSX highlighting, done here rather than with a syntax library.
@@ -72,14 +73,19 @@ function highlight(code: string): string {
 
 export default function CodeBlock({ code, language = 'tsx' }: { code: string; language?: string }) {
   const [copied, setCopied] = useState(false);
+  // Prose — an AI prompt — is shown as written: the TS pass would read every
+  // apostrophe as the start of a string. It also wraps, since a paragraph on
+  // one scrolling line is unreadable.
+  const plain = language === 'text';
   const html = useMemo(() => {
+    if (plain) return escapeHtml(code);
     try {
       return highlight(code);
     } catch {
       // Highlighting is decoration; unreadable code is not an acceptable failure.
       return escapeHtml(code);
     }
-  }, [code]);
+  }, [code, plain]);
 
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900/60">
@@ -98,7 +104,7 @@ export default function CodeBlock({ code, language = 'tsx' }: { code: string; la
           {copied ? 'Copied' : 'Copy'}
         </button>
       </div>
-      <pre className="custom-scrollbar max-h-[32rem] overflow-auto p-3 text-[11px] leading-relaxed">
+      <pre className={cn('custom-scrollbar max-h-[32rem] overflow-auto p-3 text-[11px] leading-relaxed', plain && 'whitespace-pre-wrap')}>
         <code
           className="font-mono text-slate-700 dark:text-slate-200"
           dangerouslySetInnerHTML={{ __html: html }}

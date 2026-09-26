@@ -146,7 +146,11 @@ export default function Drawer({
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key !== 'Escape' || e.defaultPrevented) return;
+      // A popover or picker opened from inside the panel (a value filter, a
+      // confirm) takes this Escape for itself — one key closes one thing.
+      if (document.querySelector('[data-overlay="popover"], [data-overlay="picker"]')) return;
+      onClose();
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
@@ -191,8 +195,8 @@ export default function Drawer({
     <div
       className={
         backdrop
-          ? 'fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm animate-fade-in'
-          : 'fixed inset-0 z-50 pointer-events-none'
+          ? 'fixed inset-0 z-[200] bg-slate-900/40 backdrop-blur-sm animate-fade-in'
+          : 'fixed inset-0 z-[200] pointer-events-none'
       }
       onClick={backdrop ? onClose : undefined}
     >

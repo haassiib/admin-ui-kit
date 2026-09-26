@@ -110,13 +110,32 @@ function members(body: string): string[] {
   const out: string[] = [];
   let depth = 0;
   let current = '';
-  for (const ch of body) {
-    if ('{[('.includes(ch)) depth++;
-    if ('}])'.includes(ch)) depth--;
-    if (ch === ';' && depth === 0) {
-      out.push(current);
-      current = '';
-    } else current += ch;
+  // Inside a comment, brackets and semicolons are prose, not structure: a
+  // JSDoc like "Spinner on the primary half; the menu stays usable." must not
+  // end the member at its semicolon, or the description is cut in two.
+  let comment: 'line' | 'block' | null = null;
+  for (let i = 0; i < body.length; i += 1) {
+    const ch = body[i];
+    const next = body[i + 1];
+    if (comment === 'line' && ch === '\n') comment = null;
+    else if (comment === 'block' && ch === '*' && next === '/') {
+      current += '*/';
+      i += 1;
+      comment = null;
+      continue;
+    } else if (!comment && ch === '/' && next === '/') comment = 'line';
+    else if (!comment && ch === '/' && next === '*') comment = 'block';
+
+    if (!comment) {
+      if ('{[('.includes(ch)) depth++;
+      if ('}])'.includes(ch)) depth--;
+      if (ch === ';' && depth === 0) {
+        out.push(current);
+        current = '';
+        continue;
+      }
+    }
+    current += ch;
   }
   if (current.trim()) out.push(current);
   return out;
@@ -187,7 +206,10 @@ export function parseProps(source: string, componentName?: string): PropDoc[] {
       const description = lines
         .slice(0, declIdx)
         .join('\n')
-        .replace(/\/\*\*?|\*\/|^\s*\*\s?|^\s*\/\/\s?/gm, '')
+        // The closer first: on a line of its own, `*/` would otherwise lose its
+        // star to the leading-asterisk rule and leave a stray "/".
+        .replace(/\*\//g, '')
+        .replace(/\/\*\*?|^\s*\*\s?|^\s*\/\/\s?/gm, '')
         .split('\n')
         .map((l) => l.trim())
         .filter(Boolean)

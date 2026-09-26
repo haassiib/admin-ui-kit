@@ -137,7 +137,10 @@ export default function MediaLibrary({
         </div>
 
         {onUpload && (
-          <label className="btn-primary cursor-pointer">
+          // `relative` anchors the input: `sr-only` is `position: absolute`, and
+          // with no positioned ancestor it escapes the scrolling `<main>` and
+          // stretches the document itself — a second, page-length scrollbar.
+          <label className="btn-primary relative cursor-pointer">
             <Upload className="h-3.5 w-3.5" />
             Upload
             <input

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import DocPage from '@/components/gallery/DocPage';
 import { BY_SLUG, ENTRIES } from '@/registry';
 import { EXAMPLE_META } from '@/registry/examples';
+import { promptFor } from '@/registry/prompts';
 import { extendsNative, parseProps } from '@/registry/props';
 import { readComponentSource, readExampleSource } from '@/registry/source';
 
@@ -54,6 +55,9 @@ export default async function PreviewPage({ params }: { params: Promise<{ slug: 
       props={source ? parseProps(source, entry.propsOf ?? entry.name) : []}
       nativeElement={source ? extendsNative(source) : null}
       source={source}
+      // Resolved here, on the server, so a page ships its own prompt rather
+      // than every component's.
+      prompt={promptFor(slug)}
     />
   );
 }

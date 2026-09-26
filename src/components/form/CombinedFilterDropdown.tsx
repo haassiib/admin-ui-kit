@@ -61,8 +61,10 @@
  * `onChange` for the store's filter slice and a setter that writes into it.
  */
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, Filter, Plus, Search, X } from 'lucide-react';
+import { InfoTooltip } from '@/components/overlay/Tooltip';
+import { useDismiss } from '@/lib/use-dismiss';
 
 export interface FilterOption {
   id: string | number;
@@ -168,36 +170,6 @@ function sameSelection(a: Array<string | number> = [], b: Array<string | number>
 /** No-op used where a required callback prop is never actually invokable (e.g. a hidden, inert measuring element). */
 const noop = () => {};
 
-/**
- * Shared dismiss-on-outside-click-or-Escape wiring for a floating panel. Only
- * attaches its `document`-level listeners while `active` is true, so a
- * closed panel costs nothing. Used by both the main flyout panel and the
- * "+N more" popover below — each just supplies its own ref + close behavior.
- */
-function useDismissOnOutsideOrEscape<T extends HTMLElement>(
-  ref: RefObject<T | null>,
-  active: boolean,
-  onOutsideClick: () => void,
-  onEscape: () => void
-) {
-  useEffect(() => {
-    if (!active) return;
-    const handleOutsideClick = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        onOutsideClick();
-      }
-    };
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onEscape();
-    };
-    document.addEventListener('mousedown', handleOutsideClick);
-    document.addEventListener('keydown', handleEscape);
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [active, ref, onOutsideClick, onEscape]);
-}
 
 export function CombinedFilterDropdown({
   groups,
@@ -280,7 +252,7 @@ export function CombinedFilterDropdown({
     }
   }, [activeGroupKey, closePanel]);
 
-  useDismissOnOutsideOrEscape(containerRef, isOpen, closePanel, handleEscape);
+  useDismiss(containerRef, isOpen, closePanel, handleEscape);
 
   // Trigger button's badge count and the chips row both reflect the
   // committed `value`, never the in-progress `draftValue` — per the
@@ -330,6 +302,9 @@ export function CombinedFilterDropdown({
 
   const handleClearGroupDraft = (groupKey: string) => setDraftValue(prev => ({ ...prev, [groupKey]: [] }));
 
+  // Empties every multi-select group in the draft. Single-select categories
+  // are left alone — emptying a mode picker would leave the consumer with no
+  // value at all.
   const handleClearAllDraft = () => {
     setDraftValue(prev => {
       const next = { ...prev };
@@ -370,19 +345,12 @@ export function CombinedFilterDropdown({
     setDraftValue(prev => ({ ...prev, [groupKey]: next }));
   };
 
-  // Clear-all skips single-select categories — emptying a mode picker would leave the
-  // consumer with no value at all.
+  // Clear-all skips single-select categories for the same reason as the draft.
   const handleClearAll = () => {
     groups.forEach(group => {
       if (!group.singleSelect && (value[group.key] ?? []).length > 0) onChange(group.key, []);
     });
-    setDraftValue(prev => {
-      const next = { ...prev };
-      groups.forEach(group => {
-        if (!group.singleSelect) next[group.key] = [];
-      });
-      return next;
-    });
+    handleClearAllDraft();
   };
 
   const activeGroup = groups.find(group => group.key === activeGroupKey) ?? null;
@@ -412,6 +380,7 @@ export function CombinedFilterDropdown({
         {isOpen && (
           <div
             ref={panelRef}
+            data-overlay="picker"
             className={`absolute z-50 mt-1 flex flex-col bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-slate-200/70 dark:border-slate-700/70 rounded-xl shadow-lg animate-fade-in ${
               panelAlign === 'right' ? 'right-0' : 'left-0'
             }`}
@@ -799,14 +768,17 @@ function FilterOptionsList({
               }}
               placeholder={group.searchPlaceholder ?? `Search ${group.label.toLowerCase()}...`}
               autoComplete="off"
-              className="w-full pl-7 pr-2 py-1.5 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:ring-2 focus:ring-indigo-500"
+              className={`w-full pl-7 ${searchTerms.length > 1 ? 'pr-7' : 'pr-2'} py-1.5 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:ring-2 focus:ring-indigo-500`}
             />
+            {searchTerms.length > 1 && (
+              <InfoTooltip
+                content={`Matching any of ${searchTerms.length} terms — “Select all” picks every match.`}
+                label="How multi-term search works"
+                className="absolute right-2 top-1/2 -translate-y-1/2"
+                iconClassName="w-3 h-3"
+              />
+            )}
           </div>
-          {searchTerms.length > 1 && (
-            <p className="mt-1 px-1 text-[11px] text-slate-400 dark:text-slate-500">
-              Matching any of {searchTerms.length} terms — “Select all” picks every match.
-            </p>
-          )}
         </div>
       )}
 
@@ -953,11 +925,27 @@ function pluralise(label: string, n: number) {
   return `${lower}s`;
 }
 
+// Every removable selection as one flat chip list. Single-select categories
+// get no chip: every chip is removable, and removing the only value of a mode
+// picker would leave the consumer with nothing selected — its current value is
+// shown on the level-1 row inside the panel instead.
+function flattenRemovable(groups: FilterGroup[], value: FilterValue): FlatChip[] {
+  const flat: FlatChip[] = [];
+  groups.forEach(group => {
+    if (group.singleSelect) return;
+    (value[group.key] ?? []).forEach(id => {
+      const option = group.options.find(o => idsEqual(o.id, id));
+      flat.push({ groupKey: group.key, groupLabel: group.label, id, label: option?.contextLabel ?? option?.label ?? String(id) });
+    });
+  });
+  return flat;
+}
+
 function FilterSelectionSummary({ groups, value, onRemoveOption, onClearAll }: FilterChipsRowProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const close = useCallback(() => setOpen(false), []);
-  useDismissOnOutsideOrEscape(rootRef, open, close, close);
+  useDismiss(rootRef, open, close, close);
 
   const segments = useMemo(() => {
     const out: string[] = [];
@@ -977,17 +965,7 @@ function FilterSelectionSummary({ groups, value, onRemoveOption, onClearAll }: F
 
   // Only categories whose selection can actually be removed appear in the popover: a
   // single-select radio has no empty state, so offering an X on it would be a dead end.
-  const removable: FlatChip[] = useMemo(() => {
-    const flat: FlatChip[] = [];
-    groups.forEach(group => {
-      if (group.singleSelect) return;
-      (value[group.key] ?? []).forEach(id => {
-        const option = group.options.find(o => idsEqual(o.id, id));
-        flat.push({ groupKey: group.key, groupLabel: group.label, id, label: option?.contextLabel ?? option?.label ?? String(id) });
-      });
-    });
-    return flat;
-  }, [groups, value]);
+  const removable = useMemo(() => flattenRemovable(groups, value), [groups, value]);
 
   if (segments.length === 0) return null;
 
@@ -1051,21 +1029,7 @@ function FilterSelectionSummary({ groups, value, onRemoveOption, onClearAll }: F
 
 
 function FilterChipsRow({ groups, value, onRemoveOption, onClearAll }: FilterChipsRowProps) {
-  const items: FlatChip[] = useMemo(() => {
-    const flat: FlatChip[] = [];
-    groups.forEach(group => {
-      // Single-select categories get no chip: every chip here is removable, and
-      // removing the only value of a mode picker would leave the consumer with
-      // nothing selected. Its current value is shown on the level-1 row inside the
-      // panel instead.
-      if (group.singleSelect) return;
-      (value[group.key] ?? []).forEach(id => {
-        const option = group.options.find(o => idsEqual(o.id, id));
-        flat.push({ groupKey: group.key, groupLabel: group.label, id, label: option?.contextLabel ?? option?.label ?? String(id) });
-      });
-    });
-    return flat;
-  }, [groups, value]);
+  const items = useMemo(() => flattenRemovable(groups, value), [groups, value]);
 
   const outerRef = useRef<HTMLDivElement>(null);
   const measureRefs = useRef<Map<string, HTMLElement>>(new Map());
@@ -1105,7 +1069,7 @@ function FilterChipsRow({ groups, value, onRemoveOption, onClearAll }: FilterChi
     setClearAllWidth(clearAllMeasureRef.current?.offsetWidth ?? 0);
   }, [items]);
 
-  useDismissOnOutsideOrEscape(morePopoverRef, morePopoverOpen, closeMorePopover, closeMorePopover);
+  useDismiss(morePopoverRef, morePopoverOpen, closeMorePopover, closeMorePopover);
 
   // One-pass width accumulation: try fitting every chip + "Clear all"; if
   // that overflows, reserve room for "+N more" + "Clear all" instead and fit

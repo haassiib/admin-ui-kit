@@ -12,8 +12,10 @@ import {
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { nextSort, type SortState } from '@/lib/sort';
+import { useDismiss } from '@/lib/use-dismiss';
+import { nextSort, sortRows, type SortState } from '@/lib/sort';
 import EmptyState from '@/components/layout/EmptyState';
+import Skeleton from '@/components/data/Skeleton';
 import Pagination from './Pagination';
 
 export type ColumnPin = 'left' | 'right';
@@ -212,15 +214,16 @@ export default function DataTable<T>({
     if (controlledSort !== undefined || !sort) return filtered;
     const col = columns.find((c) => c.key === sort.key);
     if (!col?.sortValue) return filtered;
-    const dir = sort.dir === 'asc' ? 1 : -1;
-    return [...filtered].sort((a, b) => {
-      const av = col.sortValue!(a);
-      const bv = col.sortValue!(b);
-      if (av === bv) return 0;
-      if (av === null) return 1;
-      if (bv === null) return -1;
-      return (av < bv ? -1 : 1) * dir;
-    });
+    // The kind is read off the first row that has a value — `sortValue` is
+    // untyped per column, and guessing "number" from a string column is how
+    // "10" ends up before "9". Missing values sort last in both directions.
+    const read = col.sortValue;
+    let sample: string | number | null = null;
+    for (const r of filtered) {
+      const v = read(r);
+      if (v !== null && v !== undefined && v !== '') { sample = v; break; }
+    }
+    return sortRows(filtered, sort, (r) => read(r), () => (typeof sample === 'number' ? 'number' : 'text'));
   }, [filtered, columns, sort, controlledSort]);
 
   const pinnedSet = new Set(pinnedRowIds ?? []);
@@ -394,7 +397,7 @@ export default function DataTable<T>({
                   {selectable && <td className="px-3" />}
                   {visibleColumns.map((c) => (
                     <td key={c.key} className="px-3">
-                      <span className="block h-3 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                      <Skeleton />
                     </td>
                   ))}
                 </tr>
@@ -657,7 +660,7 @@ function HeaderMenu({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const [pos, setPos] = useState<{ top: number; left: number; maxHeight: number } | null>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
 
@@ -668,36 +671,37 @@ function HeaderMenu({
       if (!el) return;
       const r = el.getBoundingClientRect();
       const width = 224;
+      const EDGE = 8;
+      const GAP = 4;
+      // Below the trigger when the menu fits there, above when it only fits
+      // above — a table near the foot of the window otherwise opens its menu
+      // off-screen. Either way it is capped to the room it has and scrolls.
+      const wanted = Math.min(panel.current?.scrollHeight ?? 288, 288);
+      const below = window.innerHeight - r.bottom - GAP - EDGE;
+      const above = r.top - GAP - EDGE;
+      const up = below < wanted && above > below;
+      const room = Math.max(120, up ? above : below);
+      const height = Math.min(wanted, room);
       setPos({
-        top: r.bottom + 4,
-        left: Math.min(Math.max(r.left, 8), Math.max(8, window.innerWidth - width - 8)),
+        top: up ? r.top - GAP - height : r.bottom + GAP,
+        left: Math.min(Math.max(r.left, EDGE), Math.max(EDGE, window.innerWidth - width - EDGE)),
+        maxHeight: room,
       });
     };
     place();
+    // Once more after the menu has mounted, with its real height.
+    const frame = requestAnimationFrame(place);
     // Capture phase: a scroll inside the table's own box does not bubble.
     window.addEventListener('scroll', place, true);
     window.addEventListener('resize', place);
     return () => {
+      cancelAnimationFrame(frame);
       window.removeEventListener('scroll', place, true);
       window.removeEventListener('resize', place);
     };
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      const t = e.target as Node;
-      if (trigger.current?.contains(t) || panel.current?.contains(t)) return;
-      setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
-    document.addEventListener('mousedown', onDown);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onDown);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open]);
+  useDismiss([trigger, panel], open, () => setOpen(false));
 
   return (
     <>
@@ -722,8 +726,10 @@ function HeaderMenu({
         createPortal(
           <div
             ref={panel}
-            style={{ top: pos.top, left: pos.left, width: 224 }}
-            className="custom-scrollbar fixed z-50 max-h-72 overflow-y-auto rounded-lg border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-800"
+            style={{ top: pos.top, left: pos.left, width: 224, maxHeight: Math.min(288, pos.maxHeight) }}
+            // The portalled-overlay band (see globals.css): above sticky table
+            // chrome and every in-flow popover.
+            className="custom-scrollbar fixed z-[200] overflow-y-auto rounded-lg border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-800"
           >
             {children}
           </div>,

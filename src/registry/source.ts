@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 /**
@@ -33,7 +33,27 @@ export async function readComponentSource(relPath: string): Promise<string | nul
  * a few more lines and cannot be fooled by formatting.
  */
 export async function readDemoSource(componentName: string): Promise<string | null> {
-  return extractFunction('src/registry/demos/index.tsx', `${componentName}Demo`);
+  return extractDemo(`${componentName}Demo`);
+}
+
+/**
+ * Demos are split across `demos/*.tsx` by area — `index.tsx` holds the
+ * original set and re-exports the rest — so a demo is looked up in every
+ * file there, `index.tsx` first.
+ */
+async function extractDemo(name: string): Promise<string | null> {
+  let files: string[] = [];
+  try {
+    files = (await readdir(path.join(SRC, 'registry/demos'))).filter((f) => f.endsWith('.tsx'));
+  } catch {
+    return null;
+  }
+  const ordered = ['index.tsx', ...files.filter((f) => f !== 'index.tsx').sort()];
+  for (const f of ordered) {
+    const found = await extractFunction(`src/registry/demos/${f}`, name);
+    if (found) return found;
+  }
+  return null;
 }
 
 /**
@@ -47,7 +67,7 @@ export async function readExampleSource(
 ): Promise<string | null> {
   return (
     (await extractFunction('src/registry/example-demos.tsx', fnName)) ??
-    (await extractFunction('src/registry/demos/index.tsx', `${componentName}Demo`))
+    (await extractDemo(`${componentName}Demo`))
   );
 }
 

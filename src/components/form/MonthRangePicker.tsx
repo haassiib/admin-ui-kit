@@ -7,11 +7,13 @@ import { CalendarDays, ChevronDown } from 'lucide-react';
 import { MonthGrid } from './MonthGrid';
 import {
   businessToday,
+  formatUtcMonthLabel,
   isFutureBusinessMonth,
   utcMonthStart,
   utcMonthEnd,
   utcYearStart,
 } from '@/lib/dateUtils';
+import { useDismiss } from '@/lib/use-dismiss';
 
 interface DateRange {
   startDate: Date | null;
@@ -33,14 +35,6 @@ type QuickOption = 'thisMonth' | 'lastMonth' | 'last3Months' | 'last6Months' | '
 function toDateOrNull(value: Date | string | null | undefined): Date | null {
   if (!value) return null;
   return value instanceof Date ? value : new Date(value);
-}
-
-// Boundaries here are UTC-anchored (see dateUtils' BUSINESS_TIMEZONE notes), so
-// the label has to be read in UTC too — date-fns `format` reads LOCAL fields
-// and would render a UTC-anchored Jul 1 as "Jun 2026" for any viewer west of
-// UTC. Same `timeZone: 'UTC'` convention the report tables already use.
-function formatUtcMonthLabel(date: Date): string {
-  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
 }
 
 export default function MonthRangePicker({ onDateRangeChange, initialRange, className = '' }: MonthRangePickerProps) {
@@ -76,15 +70,7 @@ export default function MonthRangePicker({ onDateRangeChange, initialRange, clas
     }
   }, [initialRange]);
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  useDismiss(popupRef, isOpen, () => setIsOpen(false));
 
   // Every preset is expressed in whole GMT+8 calendar months and built with the
   // UTC-anchored constructors — no date-fns arithmetic, which would operate on
@@ -172,22 +158,23 @@ export default function MonthRangePicker({ onDateRangeChange, initialRange, clas
   return (
     <div className={`relative ${className}`} ref={popupRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-2 text-left border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all active:scale-[0.98] shadow-sm"
+        className="field-input text-left"
       >
         <div className="flex items-center justify-between gap-2">
-          <span className="flex items-center gap-2 text-gray-700 dark:text-gray-200 truncate">
-            <CalendarDays size={16} className="flex-shrink-0 text-indigo-500 dark:text-indigo-400" />
-            <span className="truncate">{formatDisplay()}</span>
+          <span className="flex min-w-0 items-center gap-2 truncate">
+            <CalendarDays className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden />
+            <span className={`truncate ${range.startDate && range.endDate ? '' : 'text-slate-400 dark:text-slate-500'}`}>{formatDisplay()}</span>
           </span>
-          <ChevronDown size={16} className={`flex-shrink-0 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
         </div>
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 top-full right-0 mt-2 origin-top-right bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-gray-200/70 dark:border-gray-700/70 rounded-2xl shadow-xl z-30 p-4 sm:p-6 w-[300px] sm:w-auto sm:min-w-[560px] animate-scale-in">
-          <div className="flex items-baseline justify-between mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+        <div data-overlay="picker" className="absolute right-0 top-full z-50 mt-1 w-[300px] origin-top-right panel panel-solid p-4 animate-scale-in sm:w-auto sm:min-w-[560px]">
+          <div className="flex items-baseline justify-between mb-3 pb-3 border-b border-slate-200 dark:border-slate-700">
+            <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
               {range.startDate && range.endDate
                 ? `${formatUtcMonthLabel(range.startDate)} – ${formatUtcMonthLabel(range.endDate)}`
                 : 'Select a month range'}
@@ -196,13 +183,14 @@ export default function MonthRangePicker({ onDateRangeChange, initialRange, clas
 
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
             <div className="w-full sm:w-36 flex-shrink-0">
-              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Quick Selection</h4>
+              <h4 className="panel-title mb-2">Quick Selection</h4>
               <div className="flex flex-wrap sm:flex-col gap-1.5">
                 {quickOptions.map(option => (
                   <button
                     key={option.key}
+                    type="button"
                     onClick={() => handleQuickSelect(option.key)}
-                    className="rounded-full sm:rounded-xl bg-gray-100 dark:bg-gray-700/60 px-3.5 py-1.5 text-left text-sm font-medium text-gray-600 dark:text-gray-300 transition-colors hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-900/30 dark:hover:text-indigo-400 active:scale-95"
+                    className="rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-1.5 text-left text-xs font-medium text-slate-600 dark:text-slate-300 transition-colors hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-300"
                   >
                     {option.label}
                   </button>
@@ -212,7 +200,7 @@ export default function MonthRangePicker({ onDateRangeChange, initialRange, clas
 
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">From</h3>
+                <h3 className="panel-title mb-2">From</h3>
                 <MonthGrid
                   year={startYear}
                   selectedYear={startYear}
@@ -223,7 +211,7 @@ export default function MonthRangePicker({ onDateRangeChange, initialRange, clas
                 />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">To</h3>
+                <h3 className="panel-title mb-2">To</h3>
                 <MonthGrid
                   year={endYear}
                   selectedYear={endYear}
@@ -236,25 +224,28 @@ export default function MonthRangePicker({ onDateRangeChange, initialRange, clas
             </div>
           </div>
 
-          <div className="flex flex-col-reverse sm:flex-row justify-between items-center mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 gap-4 sm:gap-0">
+          <div className="flex flex-col-reverse sm:flex-row justify-between items-center mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 gap-4 sm:gap-0">
             <button
+              type="button"
               onClick={handleClear}
-              className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+              className="px-3 py-2 text-xs text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
             >
               Clear Selection
             </button>
 
             <div className="flex gap-3 w-full sm:w-auto justify-end">
               <button
+                type="button"
                 onClick={() => setIsOpen(false)}
-                className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                className="px-3 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleApply}
                 disabled={!range.startDate || !range.endDate}
-                className="px-6 py-2 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 active:scale-95 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed disabled:active:scale-100 transition-all"
+                className="btn-primary px-4"
               >
                 Apply
               </button>

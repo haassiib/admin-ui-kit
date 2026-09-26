@@ -1,8 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { TriangleAlert } from 'lucide-react';
+import { useDismiss } from '@/lib/use-dismiss';
 
 /**
  * A confirm step that opens next to its trigger instead of taking the whole
@@ -67,40 +68,34 @@ export default function ConfirmPopover({
       Math.max(r.right - PANEL_WIDTH, EDGE),
       Math.max(EDGE, window.innerWidth - PANEL_WIDTH - EDGE),
     );
-    setPos({ top: r.bottom + GAP, left });
+    // Below the trigger, unless that runs off the bottom of the window — a
+    // Delete at the foot of a form panel is exactly there — in which case it
+    // opens above. The height is estimated before the panel has mounted and
+    // measured on the re-place right after, so the flip decision is real.
+    const height = panelRef.current?.offsetHeight ?? 120;
+    const below = r.bottom + GAP;
+    const top = below + height <= window.innerHeight - EDGE ? below : Math.max(EDGE, r.top - GAP - height);
+    setPos({ top, left });
   }, []);
 
   useLayoutEffect(() => {
     if (!open) return;
     place();
+    // Once more after the panel has mounted, with its measured height.
+    const frame = requestAnimationFrame(place);
     // `true` for capture: a scroll inside the table's own scroll box does not
     // bubble, and that is exactly the container these triggers live in.
     window.addEventListener('scroll', place, true);
     window.addEventListener('resize', place);
     return () => {
+      cancelAnimationFrame(frame);
       window.removeEventListener('scroll', place, true);
       window.removeEventListener('resize', place);
     };
   }, [open, place]);
 
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (triggerRef.current?.contains(target)) return;
-      if (panelRef.current?.contains(target)) return;
-      setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('mousedown', onDown);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onDown);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open]);
+  // The panel is portalled, so it is not a descendant of the trigger: both roots count as inside.
+  useDismiss([triggerRef, panelRef], open, () => setOpen(false));
 
   // `inline-flex`, not `inline-block`, on BOTH the root and the trigger.
   //
@@ -126,6 +121,9 @@ export default function ConfirmPopover({
             role="dialog"
             aria-modal="false"
             aria-label={title}
+            // An AnchoredPanel treats a click in any `[data-overlay]` as inside,
+            // so confirming from within one does not close the form behind it.
+            data-overlay="popover"
             style={{ top: pos.top, left: pos.left, width: PANEL_WIDTH }}
             className="fixed z-[200] panel p-3 text-left"
           >

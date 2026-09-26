@@ -10,6 +10,14 @@ const PAGE_SIZES = [25, 50, 100, 250];
 export type PaginationVariant = 'bar' | 'pill' | 'floating';
 export type PaginationNavigation = 'pages' | 'input';
 
+/** The wrapper is the only thing the three placements differ in. */
+const WRAPPER = {
+  bar: 'shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-t border-slate-200 dark:border-slate-800 px-4 py-2',
+  pill: 'shrink-0 mt-3 mx-auto w-fit flex items-center gap-4 rounded-full border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm px-4 py-2 shadow-lg',
+  floating:
+    'fixed bottom-4 left-1/2 z-20 -translate-x-1/2 flex items-center gap-4 rounded-full border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm px-4 py-2 shadow-lg',
+} as const;
+
 /**
  * Page controls plus a page-size selector.
  *
@@ -30,9 +38,9 @@ export type PaginationNavigation = 'pages' | 'input';
  *
  * For a layout the props cannot express, the same control is also available as
  * COMPOSABLE PARTS on this component — `Pagination.Root`, `.Content`, `.First`,
- * `.Prev`, `.Pages`, `.Page`, `.Ellipsis`, `.Next`, `.Last`, `.Report`. Both
- * paths share the `pageRange` helper below, so they cannot disagree about where
- * the ellipsis gaps fall.
+ * `.Prev`, `.Pages`, `.Page`, `.Ellipsis`, `.Next`, `.Last`, `.Report`. This
+ * prop-driven entry point is BUILT FROM those parts, so the two cannot drift:
+ * there is one page button, one ellipsis, one clamp and one range line.
  */
 export default function Pagination({
   totalItems,
@@ -48,6 +56,8 @@ export default function Pagination({
   showEllipsis = true,
   showRange = true,
   showPageSize = true,
+  pageSizes = PAGE_SIZES,
+  reportTemplate,
 }: {
   totalItems: number;
   itemsPerPage: number;
@@ -66,138 +76,76 @@ export default function Pagination({
   showEllipsis?: boolean;
   showRange?: boolean;
   showPageSize?: boolean;
+  /** The choices in the rows-per-page select. */
+  pageSizes?: readonly number[];
+  /**
+   * The range line as a template — `{first}`, `{last}`, `{total}`, `{page}`,
+   * `{totalPages}` — e.g. "Showing {first} to {last} of {total}" or
+   * "Page {page} of {totalPages}". Absent, "1–25 of 400 rows".
+   */
+  reportTemplate?: string;
 }) {
-  const [pageInput, setPageInput] = useState(String(currentPage));
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-
-  useEffect(() => setPageInput(String(currentPage)), [currentPage]);
-
   if (totalPages <= 1 && totalItems <= itemsPerPage) return null;
 
-  const go = (n: number) => onPageChange(Math.min(Math.max(n, 1), totalPages));
-
-  const commit = () => {
-    const n = Number.parseInt(pageInput, 10);
-    if (Number.isNaN(n)) setPageInput(String(currentPage));
-    else go(n);
-  };
-
-  const rangeStart = totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
-  const rangeEnd = Math.min(currentPage * itemsPerPage, totalItems);
   const isPill = variant !== 'bar';
-
-  const wrapper = {
-    bar: 'shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-t border-slate-200 dark:border-slate-800 px-4 py-2',
-    pill: 'shrink-0 mt-3 mx-auto w-fit flex items-center gap-4 rounded-full border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm px-4 py-2 shadow-lg',
-    floating:
-      'fixed bottom-4 left-1/2 z-20 -translate-x-1/2 flex items-center gap-4 rounded-full border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm px-4 py-2 shadow-lg',
-  }[variant];
-
-  const nav = cn(
-    'p-1.5 text-slate-500 dark:text-slate-400 disabled:opacity-40 disabled:hover:bg-transparent',
-    isPill
-      ? 'rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-90 transition disabled:active:scale-100'
-      : 'rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800',
+  const report = reportTemplate ? (
+    <Report>
+      {(r) =>
+        reportTemplate
+          .replaceAll('{first}', r.rangeStart.toLocaleString())
+          .replaceAll('{last}', r.rangeEnd.toLocaleString())
+          .replaceAll('{total}', r.total.toLocaleString())
+          .replaceAll('{page}', r.page.toLocaleString())
+          .replaceAll('{totalPages}', r.totalPages.toLocaleString())
+      }
+    </Report>
+  ) : (
+    <Report itemType={itemType} />
   );
-
-  const range = (
-    <div className="text-slate-600 dark:text-slate-300">
-      <span className="font-semibold">{rangeStart}</span>–
-      <span className="font-semibold">{rangeEnd}</span> of{' '}
-      <span className="font-semibold">{totalItems}</span> {itemType}
-    </div>
-  );
-
-  const pageLinks = pageRange({ page: currentPage, totalPages, siblings, edges, showEllipsis }).map(
-    (token, i) =>
-      token === 'ellipsis' ? (
-        // Not a button: it is a gap, and a focusable one is a keyboard stop that
-        // does nothing. `aria-hidden` keeps it out of the reading order too.
-        <span
-          // eslint-disable-next-line react/no-array-index-key
-          key={`gap-${i}`}
-          aria-hidden
-          className="px-1 text-slate-400 select-none"
-        >
-          …
-        </span>
-      ) : (
-        <button
-          key={token}
-          onClick={() => go(token)}
-          aria-label={`Page ${token}`}
-          aria-current={token === currentPage ? 'page' : undefined}
-          className={cn(
-            'min-w-[1.75rem] px-1.5 py-1 text-center transition-colors',
-            isPill ? 'rounded-full' : 'rounded-lg',
-            token === currentPage
-              ? 'bg-indigo-600 font-semibold text-white'
-              : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
-          )}
-        >
-          {token}
-        </button>
-      ),
-  );
-
-  const middle =
-    navigation === 'pages' ? (
-      <div className="flex items-center gap-0.5">{pageLinks}</div>
-    ) : (
-      <span className="flex items-center gap-1 px-1 text-slate-600 dark:text-slate-300">
-        <input
-          value={pageInput}
-          onChange={(e) => setPageInput(e.target.value)}
-          onBlur={commit}
-          onKeyDown={(e) => e.key === 'Enter' && commit()}
-          aria-label="Page number"
-          className="w-9 rounded-md border border-slate-200 bg-transparent py-0.5 text-center dark:border-slate-700"
-        />
-        of <span className="font-semibold">{totalPages}</span>
-      </span>
-    );
 
   return (
-    <div className={cn(wrapper, 'text-xs')}>
-      {showRange && (isPill ? <span className="hidden sm:block">{range}</span> : range)}
+    <Root
+      total={totalItems}
+      itemsPerPage={itemsPerPage}
+      page={currentPage}
+      onPageChange={onPageChange}
+      siblings={siblings}
+      edges={edges}
+      showEllipsis={showEllipsis}
+      shape={isPill ? 'pill' : 'rounded'}
+    >
+      <div className={cn(WRAPPER[variant], 'text-xs')}>
+        {showRange && (isPill ? <span className="hidden sm:block">{report}</span> : report)}
 
-      <div className="flex items-center gap-3">
-        {showPageSize && (
-          <label className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
-            Rows
-            <select
-              value={itemsPerPage}
-              onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-              className="rounded-md border border-slate-200 bg-transparent px-1.5 py-0.5 dark:border-slate-700"
-            >
-              {PAGE_SIZES.map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
+        <div className="flex items-center gap-3">
+          {showPageSize && (
+            <label className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+              Rows
+              <select
+                value={itemsPerPage}
+                onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+                className="rounded-md border border-slate-200 bg-transparent px-1.5 py-0.5 dark:border-slate-700"
+              >
+                {pageSizes.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
 
-        <div className="flex items-center gap-0.5">
-          <button onClick={() => go(1)} disabled={currentPage === 1} className={nav} aria-label="First page">
-            <ChevronsLeft className="h-3.5 w-3.5" />
-          </button>
-          <button onClick={() => go(currentPage - 1)} disabled={currentPage === 1} className={nav} aria-label="Previous page">
-            <ChevronLeft className="h-3.5 w-3.5" />
-          </button>
-
-          {middle}
-
-          <button onClick={() => go(currentPage + 1)} disabled={currentPage === totalPages} className={nav} aria-label="Next page">
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
-          <button onClick={() => go(totalPages)} disabled={currentPage === totalPages} className={nav} aria-label="Last page">
-            <ChevronsRight className="h-3.5 w-3.5" />
-          </button>
+          <div className="flex items-center gap-0.5">
+            <First />
+            <Prev />
+            {navigation === 'pages' ? <Pages /> : <PageInput />}
+            <Next />
+            <Last />
+          </div>
         </div>
       </div>
-    </div>
+    </Root>
   );
 }
 
@@ -214,6 +162,8 @@ export default function Pagination({
    than one component with two ways in.
 --------------------------------------------------------------------------- */
 
+type PaginationShape = 'rounded' | 'pill';
+
 type PaginationContextValue = {
   page: number;
   totalPages: number;
@@ -225,6 +175,7 @@ type PaginationContextValue = {
   isLast: boolean;
   go: (page: number) => void;
   tokens: ReturnType<typeof pageRange>;
+  shape: PaginationShape;
 };
 
 const PaginationContext = createContext<PaginationContextValue | null>(null);
@@ -248,6 +199,7 @@ function Root({
   siblings = 1,
   edges = 1,
   showEllipsis = true,
+  shape = 'rounded',
   children,
 }: {
   /** Total number of ITEMS, not pages. */
@@ -260,6 +212,8 @@ function Root({
   /** Page links pinned at each end. */
   edges?: number;
   showEllipsis?: boolean;
+  /** Corner radius of every button — `pill` is what the pill placements use. */
+  shape?: PaginationShape;
   children: React.ReactNode;
 }) {
   const totalPages = Math.max(1, Math.ceil(total / itemsPerPage));
@@ -279,6 +233,7 @@ function Root({
         isLast: page >= totalPages,
         go,
         tokens: pageRange({ page, totalPages, siblings, edges, showEllipsis }),
+        shape,
       }}
     >
       {children}
@@ -297,8 +252,14 @@ function Content({ children, className }: { children: React.ReactNode; className
   );
 }
 
+/** The pill shape also presses in on click; the rounded one stays flat under a table. */
+const NAV_SHAPE = {
+  rounded: 'rounded-lg dark:hover:bg-slate-800',
+  pill: 'rounded-full dark:hover:bg-slate-700 transition active:scale-90 disabled:active:scale-100',
+} as const;
+
 const navButton =
-  'inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-slate-500 transition-colors hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-transparent dark:text-slate-400 dark:hover:bg-slate-800';
+  'inline-flex items-center gap-1 p-1.5 text-slate-500 transition-colors hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-transparent dark:text-slate-400';
 
 /** The four steppers differ only in target page, icon and label. */
 function stepper(
@@ -316,7 +277,7 @@ function stepper(
         onClick={() => ctx.go(target(ctx))}
         disabled={disabled(ctx)}
         aria-label={label}
-        className={cn(navButton, className)}
+        className={cn(navButton, NAV_SHAPE[ctx.shape], className)}
       >
         {children ?? defaultIcon}
       </button>
@@ -347,7 +308,8 @@ function Page({
       aria-label={`Page ${page}`}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'min-w-[1.75rem] rounded-lg px-1.5 py-1 text-center transition-colors',
+        'min-w-[1.75rem] px-1.5 py-1 text-center transition-colors',
+        ctx.shape === 'pill' ? 'rounded-full' : 'rounded-lg',
         active
           ? 'bg-indigo-600 font-semibold text-white'
           : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
@@ -394,8 +356,40 @@ function Pages({
   );
 }
 
+/**
+ * The "page N of M" box — the `navigation="input"` middle. Typing is local
+ * until blur or Enter, so a half-typed "12" does not jump to page 1 first.
+ */
+function PageInput() {
+  const { page, totalPages, go } = usePagination('PageInput');
+  const [pageInput, setPageInput] = useState(String(page));
+
+  useEffect(() => setPageInput(String(page)), [page]);
+
+  const commit = () => {
+    const n = Number.parseInt(pageInput, 10);
+    if (Number.isNaN(n)) setPageInput(String(page));
+    else go(n);
+  };
+
+  return (
+    <span className="flex items-center gap-1 px-1 text-slate-600 dark:text-slate-300">
+      <input
+        value={pageInput}
+        onChange={(e) => setPageInput(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => e.key === 'Enter' && commit()}
+        aria-label="Page number"
+        className="w-9 rounded-md border border-slate-200 bg-transparent py-0.5 text-center dark:border-slate-700"
+      />
+      of <span className="font-semibold">{totalPages}</span>
+    </span>
+  );
+}
+
 function Report({
   children,
+  itemType,
   className,
 }: {
   /** Render prop over the current numbers. Omit for "1–25 of 480". */
@@ -406,11 +400,13 @@ function Report({
     rangeStart: number;
     rangeEnd: number;
   }) => React.ReactNode;
+  /** Appended to the default line: "1–25 of 480 members". */
+  itemType?: string;
   className?: string;
 }) {
   const { page, totalPages, total, rangeStart, rangeEnd } = usePagination('Report');
   return (
-    <span className={cn('px-1', className)}>
+    <span className={cn('text-slate-600 dark:text-slate-300', className)}>
       {children ? (
         children({ page, totalPages, total, rangeStart, rangeEnd })
       ) : (
@@ -418,6 +414,7 @@ function Report({
           <span className="font-semibold">{rangeStart}</span>–
           <span className="font-semibold">{rangeEnd}</span> of{' '}
           <span className="font-semibold">{total}</span>
+          {itemType && ` ${itemType}`}
         </>
       )}
     </span>

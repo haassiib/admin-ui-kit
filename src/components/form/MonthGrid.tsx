@@ -40,19 +40,19 @@ export function MonthGrid({
           type="button"
           onClick={() => onYearChange(year - 1)}
           aria-label="Previous year"
-          className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-indigo-600 dark:hover:bg-gray-700 dark:hover:text-indigo-400 transition-colors active:scale-90"
+          className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-700 dark:hover:text-indigo-400 transition-colors active:scale-90"
         >
-          <ChevronLeft size={18} />
+          <ChevronLeft className="h-4 w-4" />
         </button>
-        <span className="text-base font-semibold text-gray-900 dark:text-white">{year}</span>
+        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{year}</span>
         <button
           type="button"
           onClick={() => onYearChange(year + 1)}
           disabled={year >= maxYear}
           aria-label="Next year"
-          className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-indigo-600 dark:hover:bg-gray-700 dark:hover:text-indigo-400 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400 transition-colors active:scale-90"
+          className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-700 dark:hover:text-indigo-400 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-400 transition-colors active:scale-90"
         >
-          <ChevronRight size={18} />
+          <ChevronRight className="h-4 w-4" />
         </button>
       </div>
       <div className="grid grid-cols-3 gap-1.5">
@@ -62,14 +62,15 @@ export function MonthGrid({
           return (
             <button
               key={label}
+              type="button"
               onClick={() => onPick(year, i)}
               disabled={disabled}
-              className={`h-10 text-sm rounded-xl transition-all active:scale-95 ${
+              className={`h-8 text-xs rounded-lg transition-all active:scale-95 ${
                 isSelected
                   ? 'bg-indigo-600 text-white font-semibold'
                   : disabled
-                  ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  ? 'text-slate-300 dark:text-slate-600 cursor-not-allowed'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
               }`}
             >
               {label}

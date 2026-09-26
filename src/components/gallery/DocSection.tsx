@@ -1,13 +1,13 @@
 'use client';
 
-import { Suspense, useState } from 'react';
-import { Code2 } from 'lucide-react';
-
-import CodeBlock from '@/components/gallery/CodeBlock';
+import Hint from '@/components/gallery/Hint';
+import PreviewCard from '@/components/gallery/PreviewCard';
+import type { DemoWidth } from '@/registry/groups';
 
 /**
- * One documented example: heading, a sentence on what it shows, the live thing,
- * and its source behind a toggle.
+ * One documented example: heading (with what it shows behind an ⓘ), then the
+ * live thing in a `PreviewCard`, whose code toggle opens the source inside the
+ * same frame.
  *
  * The code is COLLAPSED by default. A page of eleven examples with every snippet
  * expanded is a wall of source you have to scroll past to reach the next demo —
@@ -18,55 +18,31 @@ export default function DocSection({
   title,
   description,
   code,
+  prompt,
+  width,
   children,
 }: {
   id: string;
   title: string;
   description?: string;
   code?: string | null;
+  /** The component's AI prompt; adds a copy button beside the code controls. */
+  prompt?: string | null;
+  /** How wide the demo sits in its card. */
+  width?: DemoWidth;
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = useState(false);
-
   return (
     <section id={id} className="scroll-mt-6">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-          {/* The heading is the anchor target, and linkable — an eleven-section
-              page is one people send each other links into. */}
-          <a href={`#${id}`} className="hover:underline">
-            {title}
-          </a>
-        </h3>
-        {code && (
-          <button
-            onClick={() => setOpen((o) => !o)}
-            aria-expanded={open}
-            className="btn-ghost"
-          >
-            <Code2 className="h-3.5 w-3.5" />
-            {open ? 'Hide code' : 'Show code'}
-          </button>
-        )}
-      </div>
-
-      {description && (
-        <p className="mt-1 max-w-3xl text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-          {description}
-        </p>
-      )}
-
-      {/* `data-demo` is a test hook: popover-check.mjs needs to find the live
-          example without matching on styling classes, which move. */}
-      <div data-demo className="panel panel-solid mt-3 p-4">
-        <Suspense fallback={<p className="note">Loading…</p>}>{children}</Suspense>
-      </div>
-
-      {open && code && (
-        <div className="mt-2">
-          <CodeBlock code={code} />
-        </div>
-      )}
+      <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-slate-800 dark:text-slate-100">
+        {/* The heading is the anchor target, and linkable — an eleven-section
+            page is one people send each other links into. */}
+        <a href={`#${id}`} className="hover:underline">
+          {title}
+        </a>
+        <Hint text={description} label={`About ${title}`} />
+      </h3>
+      <PreviewCard code={code} prompt={prompt} width={width}>{children}</PreviewCard>
     </section>
   );
 }

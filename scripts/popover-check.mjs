@@ -46,6 +46,21 @@ const CASES = [
   ['tooltip', 'hover'],
   ['modal', 'click'],
   ['drawer', 'click'],
+  ['filter-panel', 'click'],
+  ['group-panel', 'click'],
+  ['sort-panel', 'click'],
+  ['fields-panel', 'click'],
+  ['color-rules-panel', 'click'],
+  ['anchored-panel', 'click'],
+  ['field-editor', 'click'],
+  ['view-tabs', 'click', 'button[aria-label="Add view"]'],
+  ['input-color', 'click'],
+  ['cascade-select', 'click'],
+  ['multilevel-dialog', 'click'],
+  ['split-button', 'click', 'button[aria-haspopup]'],
+  ['speed-dial', 'click', 'button[aria-expanded]'],
+  ['pivot-table', 'click', 'button[aria-expanded]'],
+  ['base-grid', 'click', 'button[aria-label="Filter"]'],
 ];
 
 const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new', args: ['--no-sandbox'] });

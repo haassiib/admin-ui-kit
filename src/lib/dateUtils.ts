@@ -1,5 +1,3 @@
-// utils/dateUtils.ts
-
 // ---------------------------------------------------------------------------
 // Reporting timezone (GMT+8)
 // ---------------------------------------------------------------------------
@@ -129,6 +127,41 @@ export function isFutureBusinessDay(date: Date): boolean {
   return date.getDate() > today.getDate();
 }
 
+// --- `YYYY-MM-DD` bridge --------------------------------------------------
+// DateRangePicker's public value is a plain ISO day string, not a Date: that is
+// what URL filters carry, and converting to a Date and back would only add a
+// place for the day to slip. These two are its ingest/emit ends, and they work
+// on LOCAL fields for the same reason as the section above.
+
+const ISO_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+// `YYYY-MM-DD` -> local-fielded Date carrying that same calendar date.
+export function isoDayToLocalFields(value: string | null | undefined): Date | null {
+  const match = ISO_DAY.exec((value ?? '').trim());
+  if (!match) return null;
+  const [, year, month, day] = match;
+  const date = new Date(Number(year), Number(month) - 1, Number(day));
+  // Rejects 2026-02-31 and friends, which Date would silently roll forward.
+  return Number.isNaN(date.getTime()) || date.getMonth() !== Number(month) - 1 ? null : date;
+}
+
+// Local-fielded Date -> `YYYY-MM-DD`. Built from the local fields, never
+// `toISOString()`, which would re-interpret them in UTC and shift the day.
+export function localFieldsToIsoDay(value: Date | null | undefined): string {
+  if (!value || Number.isNaN(value.getTime())) return '';
+  const month = `${value.getMonth() + 1}`.padStart(2, '0');
+  const day = `${value.getDate()}`.padStart(2, '0');
+  return `${value.getFullYear()}-${month}-${day}`;
+}
+
+// "Jul 2026" for a UTC-anchored month boundary. Read in UTC, because date-fns
+// `format` reads LOCAL fields and would render a UTC-anchored Jul 1 as
+// "Jun 2026" for any viewer west of UTC. One formatter for every month label
+// so the trigger, the panel header and a chart axis cannot disagree.
+export function formatUtcMonthLabel(date: Date): string {
+  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+}
+
 // --- Migration for already-persisted filter state --------------------------
 // The six filter stores persist their dateRange to localStorage, and versions
 // of this app before the GMT+8 switch wrote LOCAL-midnight boundaries there.
@@ -158,74 +191,4 @@ export function migrateLegacyLocalDateRange<T extends { dateRange?: { startDate?
     ...persisted,
     dateRange: { startDate: reanchorStart(range.startDate), endDate: reanchorEnd(range.endDate) },
   };
-}
-
-export class DateUtils {
-  static formatDate(dateString: string, isClient: boolean, options?: Intl.DateTimeFormatOptions) {
-    if (!isClient) return 'Loading...';
-    
-    try {
-      const defaultOptions: Intl.DateTimeFormatOptions = {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      };
-      return new Date(dateString).toLocaleDateString('en-US', { ...defaultOptions, ...options });
-    } catch {
-      return 'Invalid Date';
-    }
-  }
-
-  static formatDateTime(dateString: string, isClient: boolean) {
-    if (!isClient) return 'Loading...';
-    
-    try {
-      return new Date(dateString).toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch {
-      return 'Invalid Date';
-    }
-  }
-
-  static formatRelativeTime(dateString: string, isClient: boolean) {
-    if (!isClient) return 'Loading...';
-    
-    try {
-      const date = new Date(dateString);
-      const now = new Date();
-      const diffInMs = now.getTime() - date.getTime();
-      const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-      const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-      const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-
-      if (diffInMinutes < 1) return 'Just now';
-      if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-      if (diffInHours < 24) return `${diffInHours}h ago`;
-      if (diffInDays === 1) return 'Yesterday';
-      if (diffInDays < 7) return `${diffInDays}d ago`;
-      if (diffInDays < 30) return `${Math.floor(diffInDays / 7)}w ago`;
-      
-      return this.formatDate(dateString, isClient);
-    } catch {
-      return 'Invalid Date';
-    }
-  }
-
-  static getCurrentDate(isClient: boolean, options?: Intl.DateTimeFormatOptions) {
-    if (!isClient) return 'Loading...';
-    
-    const defaultOptions: Intl.DateTimeFormatOptions = {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    };
-    
-    return new Date().toLocaleDateString('en-US', { ...defaultOptions, ...options });
-  }
 }

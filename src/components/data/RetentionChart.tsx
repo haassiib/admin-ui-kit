@@ -25,15 +25,15 @@ export default function RetentionChart({ trend }: { trend: RetentionTrendPoint[]
   const hasData = trend.length > 0;
 
   return (
-    <div className="panel mb-4">
-      <h2>Deposit Retention Trend</h2>
+    <div className="panel p-5">
+      <h2 className="panel-title mb-3">Deposit Retention Trend</h2>
       {!hasData ? (
-        <div className="flex h-[300px] items-center justify-center text-sm text-gray-400 dark:text-gray-500">No data for the selected period.</div>
+        <div className="flex h-[300px] items-center justify-center text-xs text-slate-400 dark:text-slate-500">No data for the selected period.</div>
       ) : (
         <div style={{ height: 300 }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trend} margin={{ top: 8, right: 12, left: 4, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={t.grid} />
+              <CartesianGrid vertical={false} stroke={t.grid} />
               <XAxis dataKey="month" tickFormatter={fmtMonth} tick={{ fontSize: 12, fill: t.axis }} stroke={t.grid} minTickGap={24} />
               <YAxis tickFormatter={percent} tick={{ fontSize: 12, fill: t.axis }} stroke={t.grid} width={44} domain={[0, 100]} />
               <Tooltip

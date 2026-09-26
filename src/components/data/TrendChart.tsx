@@ -18,7 +18,7 @@ const fmtDay = (iso: string) => {
 
 function EmptyOrChart({ hasData, children }: { hasData: boolean; children: React.ReactNode }) {
   if (!hasData) {
-    return <div className="flex h-[300px] items-center justify-center text-sm text-gray-400 dark:text-gray-500">No data for the selected period.</div>;
+    return <div className="flex h-[300px] items-center justify-center text-xs text-slate-400 dark:text-slate-500">No data for the selected period.</div>;
   }
   return <>{children}</>;
 }
@@ -30,8 +30,8 @@ export default function TrendChart({ trend }: { trend: TrendPoint[] }) {
   return (
     <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
       {/* Total Spend over time */}
-      <div className="panel mb-0">
-        <h2>Total Spend</h2>
+      <div className="panel p-5">
+        <h2 className="panel-title mb-3">Total Spend</h2>
         <EmptyOrChart hasData={hasData}>
           <div style={{ height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -42,7 +42,7 @@ export default function TrendChart({ trend }: { trend: TrendPoint[] }) {
                     <stop offset="95%" stopColor={t.series.spend} stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={t.grid} />
+                <CartesianGrid vertical={false} stroke={t.grid} />
                 <XAxis dataKey="date" tickFormatter={fmtDay} tick={{ fontSize: 12, fill: t.axis }} stroke={t.grid} minTickGap={24} />
                 <YAxis tickFormatter={compactCurrency} tick={{ fontSize: 12, fill: t.axis }} stroke={t.grid} width={56} />
                 <Tooltip
@@ -59,13 +59,13 @@ export default function TrendChart({ trend }: { trend: TrendPoint[] }) {
       </div>
 
       {/* Registrations vs FTD (acquisition over time) */}
-      <div className="panel mb-0">
-        <h2>Registrations vs First-Time Deposits</h2>
+      <div className="panel p-5">
+        <h2 className="panel-title mb-3">Registrations vs First-Time Deposits</h2>
         <EmptyOrChart hasData={hasData}>
           <div style={{ height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={trend} margin={{ top: 8, right: 12, left: 4, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={t.grid} />
+                <CartesianGrid vertical={false} stroke={t.grid} />
                 <XAxis dataKey="date" tickFormatter={fmtDay} tick={{ fontSize: 12, fill: t.axis }} stroke={t.grid} minTickGap={24} />
                 <YAxis tickFormatter={compactNumber} tick={{ fontSize: 12, fill: t.axis }} stroke={t.grid} width={40} allowDecimals={false} />
                 <Tooltip contentStyle={t.tooltip} labelFormatter={(l) => fmtDay(String(l))} />

@@ -461,19 +461,7 @@ function PasteableGridInner<K extends string>(
     commitChange(next);
   };
 
-  const clearRange = (b: Bounds) => {
-    const next = [...rows];
-    for (let r = b.minRow; r <= b.maxRow; r++) {
-      if (r < 0 || r >= next.length) continue;
-      const updated = { ...next[r] };
-      for (let c = b.minCol; c <= b.maxCol; c++) {
-        if (c < 0 || c >= columns.length || columns[c].readOnly) continue;
-        updated[columns[c].key] = '';
-      }
-      next[r] = updated;
-    }
-    commitChange(next);
-  };
+  const clearRange = (b: Bounds) => fillRangeWithValue(b, '');
 
   const updateCell = (rowIdx: number, col: K, value: string) => {
     const sameSession = pendingEditCellRef.current?.row === rowIdx && pendingEditCellRef.current?.col === col;
@@ -624,11 +612,11 @@ function PasteableGridInner<K extends string>(
   const selectionCellClass = (r: number, c: number): string => {
     if (!bounds || !isSelected(r, c)) return '';
     if (bounds.minRow === bounds.maxRow && bounds.minCol === bounds.maxCol) return '';
-    const cls = ['bg-blue-100/50', 'dark:bg-blue-900/30'];
-    if (r === bounds.minRow) cls.push('border-t-2 border-t-blue-500');
-    if (r === bounds.maxRow) cls.push('border-b-2 border-b-blue-500');
-    if (c === bounds.minCol) cls.push('border-l-2 border-l-blue-500');
-    if (c === bounds.maxCol) cls.push('border-r-2 border-r-blue-500');
+    const cls = ['bg-indigo-100/50', 'dark:bg-indigo-900/30'];
+    if (r === bounds.minRow) cls.push('border-t-2 border-t-indigo-500');
+    if (r === bounds.maxRow) cls.push('border-b-2 border-b-indigo-500');
+    if (c === bounds.minCol) cls.push('border-l-2 border-l-indigo-500');
+    if (c === bounds.maxCol) cls.push('border-r-2 border-r-indigo-500');
     return cls.join(' ');
   };
 
@@ -641,7 +629,7 @@ function PasteableGridInner<K extends string>(
     if (r < ext.minRow || r > ext.maxRow || c < ext.minCol || c > ext.maxCol) return '';
     const source = fillSourceRef.current;
     if (source && r >= source.minRow && r <= source.maxRow && c >= source.minCol && c <= source.maxCol) return '';
-    return 'border-2 border-dashed border-gray-500 dark:border-gray-300';
+    return 'border-2 border-dashed border-slate-500 dark:border-slate-300';
   };
 
   // Dragging a header's right edge: snapshot every column's current rendered
@@ -704,7 +692,7 @@ function PasteableGridInner<K extends string>(
   const ResizeHandle = ({ colIndex }: { colIndex: number }) => (
     <div
       onMouseDown={(e) => startColumnResize(colIndex, e)}
-      className="absolute top-0 right-0 h-full w-1.5 cursor-col-resize hover:bg-blue-400/50 active:bg-blue-500/60"
+      className="absolute top-0 right-0 h-full w-1.5 cursor-col-resize hover:bg-indigo-400/50 active:bg-indigo-500/60"
     />
   );
 
@@ -723,9 +711,9 @@ function PasteableGridInner<K extends string>(
   //   sticky headers out-stack the app's absolutely-positioned popovers
   //   (MonthPicker/TreeMultiSelectDropdown panels are z-30) and the grid
   //   paints over an open dropdown.
-  // - Sticky cells get their own opaque backgrounds (bg-gray-50/
-  //   dark:bg-gray-900, same pair as agent-score's pinned cells) — the
-  //   default translucent dark:bg-gray-700/40 would let cells scrolling
+  // - Sticky cells get their own opaque backgrounds (bg-slate-50/
+  //   dark:bg-slate-900, same pair as agent-score's pinned cells) — the
+  //   default translucent dark:bg-slate-700/40 would let cells scrolling
   //   underneath show through.
   const cellBorder = pinned ? 'border-b border-r' : 'border';
   const rowNumberWidthPx = measuredRowNumberWidth
@@ -733,8 +721,8 @@ function PasteableGridInner<K extends string>(
   const cornerThClass = pinned ? 'sticky top-0 z-50' : 'relative';
   const dataThClass = pinned ? 'sticky top-0 z-40' : 'relative';
   const pinnedBodyCellClass = pinned
-    ? 'sticky z-30 bg-gray-50 dark:bg-gray-900'
-    : 'bg-gray-50 dark:bg-gray-700/40';
+    ? 'sticky z-30 bg-slate-50 dark:bg-slate-900'
+    : 'bg-slate-50 dark:bg-slate-700/40';
 
   // Sum of every resized column's snapshot, i.e. everything BUT the fixed
   // clear-row column — the denominator `colWidth` below turns each entry
@@ -749,7 +737,7 @@ function PasteableGridInner<K extends string>(
     fluidMode ? `${(colWidthsPx![idx] / totalBaselinePx!) * 100}%` : `${colWidthsPx![idx]}px`;
 
   return (
-    <div className={`isolate ${bordered ? 'border border-gray-200 dark:border-gray-700 rounded-md shadow-sm' : ''} ${pinned ? `overflow-auto ${fillHeight ? 'h-full' : 'max-h-full'}` : 'overflow-x-auto'}`}>
+    <div className={`isolate ${bordered ? 'border border-slate-200 dark:border-slate-700 rounded-md shadow-sm' : ''} ${pinned ? `overflow-auto ${fillHeight ? 'h-full' : 'max-h-full'}` : 'overflow-x-auto'}`}>
       <table
         ref={tableRef}
         className={`select-none ${pinned ? 'border-separate border-spacing-0' : 'border-collapse'}`}
@@ -789,22 +777,22 @@ function PasteableGridInner<K extends string>(
                 table-density CSS (see globals.css) unconditionally forces th
                 font-size regardless of Tailwind classes, so only an inline
                 style (or !important) can override it for this grid specifically. */}
-            <th ref={rowNumberThRef} className={`${cornerThClass} ${cellBorder} border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 px-2 text-center font-semibold text-gray-600 dark:text-gray-300`} style={{ fontSize: '0.9375rem', ...(pinned ? { left: 0 } : undefined) }}>
+            <th ref={rowNumberThRef} className={`${cornerThClass} ${cellBorder} border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 px-2 text-center font-semibold text-slate-600 dark:text-slate-300`} style={{ fontSize: '0.9375rem', ...(pinned ? { left: 0 } : undefined) }}>
               #
               <ResizeHandle colIndex={0} />
             </th>
             {hasRowHeader && (
-              <th className={`${cornerThClass} ${cellBorder} border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 px-2 text-center font-semibold text-gray-600 dark:text-gray-300`} style={{ fontSize: '0.9375rem', ...(pinned ? { left: rowNumberWidthPx } : undefined) }}>
+              <th className={`${cornerThClass} ${cellBorder} border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 px-2 text-center font-semibold text-slate-600 dark:text-slate-300`} style={{ fontSize: '0.9375rem', ...(pinned ? { left: rowNumberWidthPx } : undefined) }}>
                 {rowHeaderLabel}
                 <ResizeHandle colIndex={1} />
               </th>
             )}
             {columns.map((col, colIdx) => (
-              <th key={col.key} className={`${dataThClass} ${cellBorder} border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 px-2 pt-1.5 pb-1 text-center font-semibold text-gray-600 dark:text-gray-300 truncate`} style={{ fontSize: '0.9375rem' }}>
+              <th key={col.key} className={`${dataThClass} ${cellBorder} border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 px-2 pt-1.5 pb-1 text-center font-semibold text-slate-600 dark:text-slate-300 truncate`} style={{ fontSize: '0.9375rem' }}>
                 <div className="truncate leading-tight">{col.label}</div>
                 {col.summary !== undefined && (
                   <div
-                    className="mt-1.5 pt-1.5 border-t border-gray-300 dark:border-gray-600 text-right font-semibold text-indigo-600 dark:text-indigo-400 truncate leading-tight"
+                    className="mt-1.5 pt-1.5 border-t border-slate-300 dark:border-slate-600 text-right font-semibold text-indigo-600 dark:text-indigo-400 truncate leading-tight"
                     style={{ fontSize: '0.875rem' }}
                   >
                     {col.summary}
@@ -813,17 +801,17 @@ function PasteableGridInner<K extends string>(
                 <ResizeHandle colIndex={colIdx + dataColOffset} />
               </th>
             ))}
-            {onClearRow && <th className={`${pinned ? 'sticky top-0 z-40' : ''} ${cellBorder} border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700`} />}
+            {onClearRow && <th className={`${pinned ? 'sticky top-0 z-40' : ''} ${cellBorder} border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700`} />}
           </tr>
         </thead>
         <tbody>
           {rows.map((row, rowIdx) => (
             <tr key={rowIdx} className="group">
-              <td className={`${pinnedBodyCellClass} ${cellBorder} border-gray-300 dark:border-gray-600 px-2 text-center text-gray-400 dark:text-gray-500`} style={pinned ? { left: 0 } : undefined}>
+              <td className={`${pinnedBodyCellClass} ${cellBorder} border-slate-300 dark:border-slate-600 px-2 text-center text-slate-400 dark:text-slate-500`} style={pinned ? { left: 0 } : undefined}>
                 {rowIdx + 1}
               </td>
               {hasRowHeader && (
-                <td className={`${pinnedBodyCellClass} ${cellBorder} border-gray-300 dark:border-gray-600 px-2 text-gray-600 dark:text-gray-300 whitespace-nowrap truncate`} style={pinned ? { left: rowNumberWidthPx } : undefined}>
+                <td className={`${pinnedBodyCellClass} ${cellBorder} border-slate-300 dark:border-slate-600 px-2 text-slate-600 dark:text-slate-300 whitespace-nowrap truncate`} style={pinned ? { left: rowNumberWidthPx } : undefined}>
                   {rowHeader(rowIdx)}
                 </td>
               )}
@@ -834,7 +822,7 @@ function PasteableGridInner<K extends string>(
                   key={col.key}
                   onMouseDown={(e) => handleMouseDown(rowIdx, colIdx, e)}
                   onMouseEnter={() => handleMouseEnter(rowIdx, colIdx)}
-                  className={`relative ${cellBorder} border-gray-300 dark:border-gray-600 p-0 ${selectionCellClass(rowIdx, colIdx)} ${fillPreviewCellClass(rowIdx, colIdx)}`}
+                  className={`relative ${cellBorder} border-slate-300 dark:border-slate-600 p-0 ${selectionCellClass(rowIdx, colIdx)} ${fillPreviewCellClass(rowIdx, colIdx)}`}
                 >
                   <input
                     ref={setInputRef(rowIdx, colIdx)}
@@ -850,28 +838,28 @@ function PasteableGridInner<K extends string>(
                     onDragStart={(e) => e.preventDefault()}
                     className={`absolute inset-0 block w-full h-full box-border px-1.5 text-right tabular-nums outline-none focus:z-10 ${
                       col.readOnly
-                        ? 'bg-gray-50 dark:bg-gray-700/30 text-gray-500 dark:text-gray-400 cursor-default border border-transparent focus:border-gray-400 dark:focus:border-gray-500'
+                        ? 'bg-slate-50 dark:bg-slate-700/30 text-slate-500 dark:text-slate-400 cursor-default border border-transparent focus:border-slate-400 dark:focus:border-slate-500'
                         : error
-                          ? 'bg-red-50 dark:bg-red-900/25 text-red-700 dark:text-red-300 border border-red-400 dark:border-red-500/70 focus:border-red-500'
-                          : 'bg-transparent dark:text-gray-100 border border-transparent focus:border-blue-500'
+                          ? 'bg-rose-50 dark:bg-rose-900/25 text-rose-700 dark:text-rose-300 border border-rose-400 dark:border-rose-500/70 focus:border-rose-500'
+                          : 'bg-transparent dark:text-slate-100 border border-transparent focus:border-indigo-500'
                     }`}
                   />
                   {bounds && rowIdx === bounds.maxRow && colIdx === bounds.maxCol && (
                     <div
                       onMouseDown={handleFillMouseDown}
                       title="Drag to fill"
-                      className="absolute -right-[3px] -bottom-[3px] w-[7px] h-[7px] bg-blue-600 border border-white dark:border-gray-800 cursor-crosshair z-20"
+                      className="absolute -right-[3px] -bottom-[3px] w-[7px] h-[7px] bg-indigo-600 border border-white dark:border-slate-800 cursor-crosshair z-20"
                     />
                   )}
                 </td>
                 );
               })}
               {onClearRow && (
-                <td className={`${cellBorder} border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/40 text-center`}>
+                <td className={`${cellBorder} border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/40 text-center`}>
                   <button
                     type="button"
                     onClick={() => onClearRow(rowIdx)}
-                    className="text-gray-300 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity dark:text-gray-500"
+                    className="text-slate-300 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity dark:text-slate-500"
                     title="Clear row"
                   >
                     <Trash2 size={12} className="mx-auto" />

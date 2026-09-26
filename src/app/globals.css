@@ -96,19 +96,6 @@ body {
     @apply text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400;
   }
 
-  /* marketing-stats' `.panel` baked in `p-5 mb-5`, so its components pass no
-     padding of their own and collapse without it. Only the SPACING is restored
-     here, under an opt-in class — the grey it also carried was `gray-*` against
-     bonus-adjustment's `slate-*`, and colour follows bonus-adjustment. Put
-     `panel panel-padded` on a marketing-stats panel; the two rules are in the
-     same layer and this one is declared later, so the padding lands. */
-  .panel-padded {
-    @apply p-5 mb-5;
-  }
-  .panel-padded h2 {
-    @apply text-sm m-0 mb-3.5 text-slate-500 dark:text-slate-400 uppercase tracking-wide;
-  }
-
   /* Table shell shared by every admin list. */
   .data-table {
     @apply w-full text-left text-xs;

@@ -4,10 +4,11 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { useRef, useState, useTransition } from 'react';
 import { ArrowRight, Bell, CheckCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
+import { useDismiss } from '@/lib/use-dismiss';
 import NotificationCard from './NotificationCard';
 import type { HeaderNotification } from '@/components/overlay/NotificationCard';
 
@@ -39,22 +40,7 @@ export default function NotificationBell({
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const onDown = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', onDown);
-    return () => document.removeEventListener('mousedown', onDown);
-  }, []);
-
-  // Escape closes, matching every other dismissible surface in the shell.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, []);
+  useDismiss(ref, open, () => setOpen(false));
 
   const readOne = (eventId: number) => {
     startTransition(async () => {

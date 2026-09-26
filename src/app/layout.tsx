@@ -10,7 +10,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Admin UI Kit',
-  description: '55 React components for admin and dashboard interfaces.',
+  description: '104 React components for admin and dashboard interfaces.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -34,7 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100">
         {/* ThemeProvider drives the colour scheme and density. SidebarProvider
             is still mounted because the catalogued `Sidebar` demo needs it —
-            `Layout` deliberately owns its own open state instead. */}
+            `DashShell` deliberately owns its own open state instead. */}
         <ThemeProvider>
           <SidebarProvider>
             <DashShell sections={sections}>{children}</DashShell>

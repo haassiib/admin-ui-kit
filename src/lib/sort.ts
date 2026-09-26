@@ -12,7 +12,7 @@ export type SortDirection = 'asc' | 'desc';
 export type SortState = { key: string; dir: SortDirection } | null;
 
 /** What a column's value is, which decides how two of them are compared. */
-export type SortKind = 'text' | 'number' | 'date';
+export type SortKind = 'text' | 'number' | 'date' | 'boolean';
 
 /**
  * Missing values sort LAST in both directions.
@@ -30,6 +30,7 @@ function compareValues(a: unknown, b: unknown, kind: SortKind): number {
   if (bMissing) return -1;
 
   if (kind === 'number') return Number(a) - Number(b);
+  if (kind === 'boolean') return Number(isTruthy(a)) - Number(isTruthy(b));
   if (kind === 'date') return new Date(a as string | Date).getTime() - new Date(b as string | Date).getTime();
 
   // `localeCompare` with numeric so "row 2" precedes "row 10", and
@@ -69,6 +70,9 @@ export function sortRows<T>(
 
 const isMissing = (v: unknown) => v === null || v === undefined || v === '';
 
+/** A checkbox column may hold a boolean, a 0/1 or the strings a form posts. */
+const isTruthy = (v: unknown) => v === true || v === 1 || v === 'true' || v === '1';
+
 /**
  * Click cycling: unsorted -> asc -> desc -> unsorted.
  *
@@ -80,4 +84,52 @@ export function nextSort(current: SortState, key: string): SortState {
   if (!current || current.key !== key) return { key, dir: 'asc' };
   if (current.dir === 'asc') return { key, dir: 'desc' };
   return null;
+}
+
+/* ── Multi-level sort ──────────────────────────────────────────────────────── */
+
+/** One level of a Lark Base style sort: a column and a direction. */
+export type SortLevel = { key: string; dir: SortDirection };
+
+/** Three, matching grouping. Past that the ordering is no longer something a
+ *  person is holding in their head. */
+export const MAX_SORT_LEVELS = 3;
+
+/**
+ * What a direction MEANS for each kind — "A → Z" on a name, "Old → New" on a
+ * date, never "asc/desc". The direction of a sort is the one thing a person
+ * double-checks, and asc/desc makes them translate it against the column's
+ * type every time.
+ */
+export const SORT_DIRECTION_LABELS: Record<SortKind, { asc: string; desc: string }> = {
+  text: { asc: 'A → Z', desc: 'Z → A' },
+  number: { asc: '0 → 9', desc: '9 → 0' },
+  date: { asc: 'Old → New', desc: 'New → Old' },
+  boolean: { asc: 'No → Yes', desc: 'Yes → No' },
+};
+
+/**
+ * `sortRows` over several levels: the first level orders, each later one
+ * breaks the ties the one before it left. Missing values still sort last in
+ * both directions at every level, and the sort is stable, so rows that tie on
+ * every level keep the order they arrived in.
+ */
+export function sortRowsBy<T>(
+  rows: readonly T[],
+  levels: readonly SortLevel[],
+  valueOf: (row: T, key: string) => unknown,
+  kindOf: (key: string) => SortKind,
+): T[] {
+  if (levels.length === 0) return [...rows];
+  return [...rows].sort((a, b) => {
+    for (const level of levels) {
+      const av = valueOf(a, level.key);
+      const bv = valueOf(b, level.key);
+      const result = compareValues(av, bv, kindOf(level.key));
+      if (result === 0) continue;
+      if (isMissing(av) !== isMissing(bv)) return result;
+      return level.dir === 'asc' ? result : -result;
+    }
+    return 0;
+  });
 }

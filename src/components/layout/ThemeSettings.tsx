@@ -2,9 +2,10 @@
 
 /* Origin: bonus-adjustment (96S2), verbatim. */
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Moon, Sun, Type, SlidersHorizontal } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { useDismiss } from '@/lib/use-dismiss';
 import { useTheme, type Density } from '@/contexts/ThemeContext';
 
 const DENSITIES: readonly Density[] = ['compact', 'standard', 'comfortable'];
@@ -14,13 +15,7 @@ export default function ThemeSettings() {
   const ref = useRef<HTMLDivElement>(null);
   const { theme, setTheme, density, setDensity } = useTheme();
 
-  useEffect(() => {
-    const onDown = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', onDown);
-    return () => document.removeEventListener('mousedown', onDown);
-  }, []);
+  useDismiss(ref, open, () => setOpen(false));
 
   return (
     <div className="relative" ref={ref}>

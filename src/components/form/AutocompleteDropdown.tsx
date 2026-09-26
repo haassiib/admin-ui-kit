@@ -4,6 +4,7 @@
 
 import * as React from 'react';
 import { Check, ChevronsUpDown, X } from 'lucide-react';
+import { useDismiss } from '@/lib/use-dismiss';
 
 interface AutocompleteDropdownOption {
   value: string;
@@ -74,8 +75,11 @@ export function AutocompleteDropdown({ options, value, onChange, placeholder, se
 
   const selectedLabel = options.find(option => option.value === value)?.label;
 
+  const containerRef = React.useRef<HTMLDivElement>(null);
   const dropdownRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLDivElement>(null);
+
+  useDismiss(containerRef, open, () => setOpen(false));
 
   // Typing re-filters the list, so the highlight goes back to the best (first)
   // match — the usual type-ahead behaviour.
@@ -86,20 +90,6 @@ export function AutocompleteDropdown({ options, value, onChange, placeholder, se
     if (!open) return;
     listRef.current?.querySelector('[data-active="true"]')?.scrollIntoView({ block: 'nearest' });
   }, [activeIndex, open]);
-
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.parentElement?.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [dropdownRef]);
 
   // Focusing the field itself opens the dropdown and starts a fresh search —
   // there's no separate nested search input anymore, this one field shows
@@ -178,7 +168,7 @@ export function AutocompleteDropdown({ options, value, onChange, placeholder, se
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <div ref={containerRef} className={`relative ${className}`}>
       <input
         ref={dropdownRef}
         type="text"
@@ -192,7 +182,7 @@ export function AutocompleteDropdown({ options, value, onChange, placeholder, se
         onKeyDown={handleKeyDown}
         placeholder={open ? searchPlaceholder : placeholder}
         autoComplete="off"
-        className={`relative w-full rounded-lg bg-white dark:bg-gray-700 py-2 pl-3 pr-10 text-left border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 ${disabled ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed' : ''}`}
+        className={`field-input pr-12 ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
         disabled={disabled}
       />
       <div className="absolute inset-y-0 right-0 flex items-center pr-2">
@@ -203,30 +193,28 @@ export function AutocompleteDropdown({ options, value, onChange, placeholder, se
               e.stopPropagation();
               onChange(null);
             }}
-            className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
             aria-label="Clear selection"
           >
-            <X className="h-4 w-4" />
+            <X className="h-3.5 w-3.5" />
           </button>
         )}
-        <ChevronsUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+        <ChevronsUpDown className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
       </div>
 
       {open && (
-        <div className={`absolute z-50 w-full overflow-auto rounded-xl bg-white/95 dark:bg-gray-700/95 backdrop-blur-xl py-2 text-base shadow-lg ring-1 ring-gray-100 dark:ring-gray-600 ring-opacity-5 focus:outline-none sm:text-sm animate-fade-in
-          ${position === 'bottom' ? 'mt-1' : 'bottom-full mb-1'}
-        `}
+        <div data-overlay="picker" className={`absolute z-50 w-full overflow-auto panel panel-solid p-1 text-xs animate-fade-in custom-scrollbar ${position === 'bottom' ? 'mt-1' : 'bottom-full mb-1'}`}
         style={{ maxHeight: '15rem' }} // Equivalent to max-h-60
         >
           {filteredOptions.length === 0 && query !== '' ? (
-            <div className="relative cursor-default select-none py-2 px-4 text-gray-700 dark:text-gray-300">{emptyText}</div>
+            <div className="px-3 py-2 text-[11px] text-slate-400">{emptyText}</div>
           ) : (
-            <div ref={listRef} role="listbox" className="px-2 space-y-0.5">
+            <div ref={listRef} role="listbox" className="space-y-0.5">
               {(isGrouped ? groupedOptions : [['', filteredOptions] as const]).map(([group, groupOptions]) => (
                 <div key={group || '__ungrouped'}>
                   {group && (
                     // Sticky so the heading stays visible while scrolling a long group.
-                    <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 px-2 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                    <div className="sticky top-0 z-10 bg-white dark:bg-slate-800 px-2 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                       {group}
                     </div>
                   )}
@@ -242,12 +230,12 @@ export function AutocompleteDropdown({ options, value, onChange, placeholder, se
                         // always agree on what Enter would commit.
                         onMouseEnter={() => setActiveIndex(flatOptions.findIndex(o => o.value === option.value))}
                         onClick={() => commitSelection(option)}
-                        className={`relative cursor-pointer select-none py-2 pl-8 pr-4 rounded-lg transition-colors ${
-                          isActive ? 'bg-indigo-600 text-white' : 'text-gray-900 dark:text-gray-100'
+                        className={`relative cursor-pointer select-none py-1.5 pl-7 pr-3 rounded-lg transition-colors ${
+                          isActive ? 'bg-indigo-600 text-white' : 'text-slate-700 dark:text-slate-200'
                         }`}
                       >
                         <span className="block truncate">{option.label}</span>
-                        {value === option.value && <Check className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4" />}
+                        {value === option.value && <Check className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5" />}
                       </div>
                     );
                   })}

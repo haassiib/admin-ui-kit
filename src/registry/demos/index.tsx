@@ -3,11 +3,10 @@
 /** Live demos — one exported `<Name>Demo` per catalog entry, driving the real
  *  component with real props. */
 
-import { useRef, useState } from 'react';
+import { Fragment, useRef, useState } from 'react';
 import { Coins, RefreshCw, TrendingUp, Users, Zap } from 'lucide-react';
 
 import Alert from '@/components/layout/Alert';
-import Layout from '@/components/layout/Layout';
 import NavMenu from '@/components/layout/NavMenu';
 import Avatar from '@/components/layout/Avatar';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
@@ -37,6 +36,7 @@ import { DatePicker } from '@/components/form/DatePicker';
 import DateRangePicker from '@/components/form/DateRangePicker';
 import Field, { Input, Select, Textarea } from '@/components/form/Field';
 import { MonthGrid } from '@/components/form/MonthGrid';
+import { DayGrid } from '@/components/form/DayGrid';
 import MonthPicker from '@/components/form/MonthPicker';
 import MonthRangePicker from '@/components/form/MonthRangePicker';
 import MultiSelect, { type OptionValue } from '@/components/form/MultiSelect';
@@ -62,12 +62,45 @@ import Skeleton from '@/components/data/Skeleton';
 import StatusBar from '@/components/data/StatusBar';
 import StatusSteps from '@/components/data/StatusSteps';
 import TrendChart from '@/components/data/TrendChart';
+import ChartCard from '@/components/data/ChartCard';
+import BarChart from '@/components/data/BarChart';
+import LineChart, { AreaChart } from '@/components/data/LineChart';
+import DonutChart from '@/components/data/DonutChart';
+import ScatterChart from '@/components/data/ScatterChart';
+import Heatmap from '@/components/data/Heatmap';
+import FunnelChart from '@/components/data/FunnelChart';
+import DivergingBars from '@/components/data/DivergingBars';
+import Sparkline from '@/components/data/Sparkline';
+import { compactCurrency, compactNumber } from '@/components/data/chartTheme';
 
 import MediaLibrary from '@/components/media/MediaLibrary';
 
+import FilterPanel from '@/components/form/FilterPanel';
+import ConditionGroupsBuilder from '@/components/form/ConditionGroupsBuilder';
+import GroupPanel from '@/components/form/GroupPanel';
+import SortPanel from '@/components/form/SortPanel';
+import FieldsPanel, { type FieldLayout } from '@/components/form/FieldsPanel';
+import ColorRulesPanel from '@/components/form/ColorRulesPanel';
+import BaseGrid, { columnFromField, type GridColumn, type HistoryEntry } from '@/components/table/BaseGrid';
+import BaseTable from '@/components/table/BaseTable';
+import ViewTabs, { type ViewTab } from '@/components/table/ViewTabs';
+import FieldEditor from '@/components/form/FieldEditor';
+import type { FieldDef } from '@/lib/fields';
+import GroupBandRow from '@/components/table/GroupBandRow';
+import OptionPill, { OptionPills } from '@/components/data/OptionPill';
+import AnchoredPanel, { anchorOf, closestPanelRect, type Anchor } from '@/components/overlay/AnchoredPanel';
+import { filterRows, groupsMatch, type Condition, type ConditionGroup, type FilterField, type MatchMode, type RowReader } from '@/lib/conditions';
+import { resolveRowColors, type ColorRule } from '@/lib/coloring';
+import { CELL_TINT, ROW_TINT } from '@/lib/tones';
+import type { GroupLevel } from '@/lib/grouping';
+import type { SortLevel } from '@/lib/sort';
+
 import {
   DEMO_USER, MEDIA, MENU_TREE, NOTIFICATIONS, PEOPLE, RANKED, REGIONS, RETENTION, TEAMS, TREND,
-  type Person,
+  TASKS, TASK_COLUMNS, TASK_EXTRA, TASK_HISTORY, TASK_PRIORITY, TASK_STATUS, TASK_TAGS, TASK_VIEWS,
+  MRR_BY_PLAN, PLAN_SERIES, TICKETS_BY_TEAM, WAU_BY_REGION, REGION_SERIES, SIGNUPS_BY_CHANNEL, DEALS,
+  WEEKDAYS, HOURS, SESSIONS_BY_HOUR, ONBOARDING_FUNNEL, CSAT_VS_TARGET, SPARK_REVENUE, SPARK_CHURN, SPARK_SEATS,
+  type Person, type Task,
 } from '../fixtures';
 import { DemoTable, Row, Variant, useEcho } from './kit';
 
@@ -367,6 +400,21 @@ export function MonthRangePickerDemo() {
   return <MonthRangePicker initialRange={range} onDateRangeChange={setRange} />;
 }
 
+export function DayGridDemo() {
+  const [picked, setPicked] = useState<Date | null>(new Date(2026, 6, 14));
+  return (
+    <div className="max-w-xs">
+      <DayGrid
+        month={new Date(2026, 6, 1)}
+        title
+        isDayDisabled={() => false}
+        onPick={setPicked}
+        dayState={(day) => ({ selected: picked?.getTime() === day.getTime() })}
+      />
+    </div>
+  );
+}
+
 export function MonthGridDemo() {
   const [year, setYear] = useState(2026);
   const [picked, setPicked] = useState({ year: 2026, month: 7 });
@@ -459,7 +507,9 @@ export function PaginationDemo() {
     <div className="flex flex-col gap-6">
       <Variant label="bar (default)"><div className="rounded-lg border border-slate-200 dark:border-slate-700"><Pagination {...shared} /></div></Variant>
       <Variant label="pill"><Pagination {...shared} variant="pill" /></Variant>
-      <Variant label="floating"><Pagination {...shared} variant="floating" /></Variant>
+      {/* No `floating` here: it is `fixed` to the viewport, so on the gallery it
+          pinned itself over every other component. The variants example shows it
+          on demand instead. */}
     </div>
   );
 }
@@ -515,6 +565,101 @@ export function KpiTileDemo() {
 export function RankedBarsDemo() { return <RankedBars rows={RANKED} />; }
 export function TrendChartDemo() { return <TrendChart trend={TREND} />; }
 export function RetentionChartDemo() { return <RetentionChart trend={RETENTION} />; }
+
+export function ChartCardDemo() {
+  return (
+    <ChartCard
+      title="Seats by plan"
+      hint="The frame every chart here sits in. The two icons at the right switch between the chart and the same numbers as a table."
+      legend={[{ label: 'Used', color: '#2a78d6' }, { label: 'Free', color: '#eb6834' }]}
+      table={{ columns: [{ key: 'plan', label: 'Plan' }, { key: 'used', label: 'Used', align: 'right' }, { key: 'free', label: 'Free', align: 'right' }], rows: [{ plan: 'Pro', used: 412, free: 88 }, { plan: 'Enterprise', used: 1_904, free: 96 }] }}
+    >
+      <p className="py-10 text-center text-xs text-slate-400">Any chart goes here.</p>
+    </ChartCard>
+  );
+}
+
+export function BarChartDemo() {
+  return <BarChart title="MRR by plan" hint="Grouped: compare plans within each month." data={MRR_BY_PLAN} x="month" series={PLAN_SERIES} format={compactCurrency} />;
+}
+
+export function LineChartDemo() {
+  return <LineChart title="Weekly active users" hint="Four regions on one axis. Hover anywhere to read every region at that week." data={WAU_BY_REGION} x="week" series={REGION_SERIES} />;
+}
+
+export function AreaChartDemo() {
+  return <AreaChart title="MRR by plan" hint="Stacked: the top edge is total MRR, each band a plan's share of it." data={MRR_BY_PLAN} x="month" series={PLAN_SERIES} stacked format={compactCurrency} />;
+}
+
+export function DonutChartDemo() {
+  return (
+    <div className="max-w-xl">
+      <DonutChart title="Sign-ups by channel" hint="Seven channels, so the two smallest fold into Other — a donut past six slices stops being readable at a glance." data={SIGNUPS_BY_CHANNEL} />
+    </div>
+  );
+}
+
+export function ScatterChartDemo() {
+  return (
+    <ScatterChart
+      title="Deal size against sales cycle"
+      hint="Each dot is a closed deal. Larger deals take longer — and the enterprise cluster sits apart from the rest."
+      groups={DEALS}
+      xLabel="Days to close"
+      yLabel="Deal size"
+      yFormat={compactCurrency}
+    />
+  );
+}
+
+export function HeatmapDemo() {
+  return (
+    <Heatmap
+      title="Sessions by weekday and hour"
+      hint="Darker is busier. The working-day block and the lunch dip at 13:00 are the patterns to look for."
+      rows={WEEKDAYS}
+      columns={HOURS}
+      values={SESSIONS_BY_HOUR}
+    />
+  );
+}
+
+export function FunnelChartDemo() {
+  return (
+    <div className="max-w-2xl">
+      <FunnelChart title="Trial onboarding" hint="Each bar is scaled to the first stage; the percentage is conversion from the stage before." stages={ONBOARDING_FUNNEL} />
+    </div>
+  );
+}
+
+export function DivergingBarsDemo() {
+  return (
+    <div className="max-w-2xl">
+      <DivergingBars title="CSAT against target" hint="Points above or below each team's target this quarter." data={CSAT_VS_TARGET} valueLabel="vs target" format={(v) => `${v > 0 ? '+' : ''}${v.toFixed(1)}`} />
+    </div>
+  );
+}
+
+export function SparklineDemo() {
+  const tiles = [
+    { title: 'MRR', value: '$64K', spark: SPARK_REVENUE },
+    { title: 'Churn', value: '4.6%', spark: SPARK_CHURN },
+    { title: 'Seats', value: '987', spark: SPARK_SEATS },
+  ];
+  return (
+    <div className="grid gap-3 sm:grid-cols-3">
+      {tiles.map((t) => (
+        <div key={t.title} className="panel flex items-end justify-between gap-3 p-4">
+          <div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">{t.title}</p>
+            <p className="text-xl font-semibold text-slate-900 dark:text-slate-50">{t.value}</p>
+          </div>
+          <Sparkline values={t.spark} label={t.title} />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function ActivityFeedDemo() {
   return (
@@ -703,36 +848,6 @@ export function MediaLibraryDemo() {
 
 /* ------------------------------------------------------- shell and menu --- */
 
-export function LayoutDemo() {
-  return (
-    <div className="h-[28rem] overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
-      {/* Scaled down inside a frame: the real thing is `h-screen`, which would
-          take over the page it is being previewed on. */}
-      <div className="h-full [&>div]:h-full">
-        <Layout
-          brand={<span className="text-sm font-bold text-slate-900 dark:text-white">Acme</span>}
-          actions={<Badge tone="info">Pro</Badge>}
-          sidebarWidth="w-52"
-          sidebar={
-            <NavMenu
-              activeHref="/members"
-              sections={[
-                { label: 'Workspace', items: [{ label: 'Overview', href: '/' }, { label: 'Members', href: '/members' }] },
-                { label: 'Settings', items: [{ label: 'Billing', href: '/billing' }, { label: 'Roles', href: '/roles' }] },
-              ]}
-            />
-          }
-        >
-          <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Members</h2>
-          <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-            Page content goes here. Narrow the window to see the sidebar collapse to a drawer.
-          </p>
-        </Layout>
-      </div>
-    </div>
-  );
-}
-
 export function NavMenuDemo() {
   const sections = [
     { label: 'Workspace', items: [{ label: 'Overview', href: '/' }, { label: 'Members', href: '/members', badge: '8' }, { label: 'Projects', href: '/projects' }] },
@@ -774,3 +889,347 @@ export function PickListDemo() {
     />
   );
 }
+
+/* ------------------------------------------------ Lark-Base-style grid --- */
+
+/** The filter vocabulary is the grid's columns, verbatim. */
+const TASK_FIELDS: FilterField[] = TASK_COLUMNS.map((c) => ({
+  id: c.key, label: c.label, kind: c.kind, ...(c.options?.length ? { options: c.options } : {}),
+}));
+
+const taskReader = (t: Task): RowReader => ({
+  valueOf: (id) => TASK_COLUMNS.find((c) => c.key === id)?.value(t),
+  kindOf: (id) => TASK_COLUMNS.find((c) => c.key === id)?.kind ?? 'text',
+});
+
+export function FilterPanelDemo() {
+  const [conditions, setConditions] = useState<Condition[]>([{ field: 'status', op: 'isNot', value: 'done' }]);
+  const [match, setMatch] = useState<MatchMode>('all');
+  const kept = filterRows(TASKS, conditions, match, taskReader);
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <FilterPanel fields={TASK_FIELDS} conditions={conditions} match={match} onApply={(c, m) => { setConditions(c); setMatch(m); }} />
+        <span className="text-xs text-slate-500 dark:text-slate-400">{kept.length} of {TASKS.length} tasks match</span>
+      </div>
+      <ul className="space-y-0.5 text-xs text-slate-600 dark:text-slate-300">
+        {kept.slice(0, 6).map((t) => <li key={t.id}>· {t.title}</li>)}
+        {kept.length > 6 && <li className="text-slate-400">… and {kept.length - 6} more</li>}
+      </ul>
+    </div>
+  );
+}
+
+export function ConditionGroupsBuilderDemo() {
+  const [groups, setGroups] = useState<ConditionGroup[]>([
+    { conditions: [{ field: 'priority', op: 'is', value: 'urgent' }] },
+    { conditions: [{ field: 'status', op: 'is', value: 'review' }, { field: 'billable', op: 'is', value: 'true' }] },
+  ]);
+  const [match, setMatch] = useState<MatchMode>('all');
+  const kept = TASKS.filter((t) => groupsMatch(groups, match, taskReader(t)));
+  return (
+    <div className="max-w-2xl space-y-2">
+      <ConditionGroupsBuilder fields={TASK_FIELDS} groups={groups} matchMode={match} onChange={(g, m) => { setGroups(g); setMatch(m); }} />
+      <p className="text-xs text-slate-500 dark:text-slate-400">{kept.length} of {TASKS.length} tasks match.</p>
+    </div>
+  );
+}
+
+export function GroupPanelDemo() {
+  const [levels, setLevels, echo] = useEcho<GroupLevel[]>([{ by: 'team', dir: 'asc' }]);
+  const groupable = TASK_COLUMNS.filter((c) => c.groupable !== false);
+  return (
+    <div>
+      <GroupPanel levels={levels} onChange={setLevels} options={groupable.map((c) => c.key)} labelOf={(k) => groupable.find((c) => c.key === k)?.label ?? k} />
+      {echo}
+    </div>
+  );
+}
+
+export function FieldsPanelDemo() {
+  const [layout, setLayout, echo] = useEcho<FieldLayout>({ order: [], hidden: ['estimate'], labels: {} });
+  return (
+    <div>
+      <FieldsPanel
+        layout={layout}
+        onChange={setLayout}
+        columns={[
+          { key: 'title', label: 'Task', locked: true },
+          { key: 'status', label: 'Status' },
+          { key: 'estimate', label: 'Estimate' },
+          { key: 'due', label: 'Due' },
+          { key: 'billable', label: 'Billable' },
+        ]}
+      />
+      {echo}
+    </div>
+  );
+}
+
+export function SortPanelDemo() {
+  const [sorts, setSorts, echo] = useEcho<SortLevel[]>([{ key: 'due', dir: 'asc' }]);
+  return (
+    <div>
+      <SortPanel
+        sorts={sorts}
+        onChange={setSorts}
+        columns={[
+          { key: 'title', label: 'Task', kind: 'text' },
+          { key: 'estimate', label: 'Estimate', kind: 'number' },
+          { key: 'due', label: 'Due', kind: 'date' },
+          { key: 'billable', label: 'Billable', kind: 'boolean' },
+        ]}
+      />
+      {echo}
+    </div>
+  );
+}
+
+export function ColorRulesPanelDemo() {
+  const [rules, setRules] = useState<ColorRule[]>([
+    { id: 'r1', scope: 'row', field: 'priority', op: 'is', value: 'urgent', tone: 'rose' },
+    { id: 'r2', scope: 'cell', field: 'status', op: 'is', value: 'done', tone: 'emerald' },
+  ]);
+  return (
+    <div className="space-y-2">
+      <ColorRulesPanel fields={TASK_FIELDS} rules={rules} onChange={setRules} />
+      <ul className="max-w-md divide-y divide-slate-100 rounded-lg border border-slate-200 text-xs dark:divide-slate-800 dark:border-slate-700">
+        {TASKS.slice(0, 6).map((t) => {
+          const c = resolveRowColors(rules, taskReader(t));
+          return (
+            <li key={t.id} className={`flex items-center gap-3 px-3 py-1.5 ${c.row ? ROW_TINT[c.row] : ''}`}>
+              <span className="min-w-0 flex-1 truncate">{t.title}</span>
+              <span className={`rounded px-1.5 py-0.5 ${c.cells.status ? CELL_TINT[c.cells.status] : ''}`}>{TASK_STATUS.find((o) => o.value === t.status)?.label}</span>
+              <span className={`rounded px-1.5 py-0.5 ${c.cells.priority ? CELL_TINT[c.cells.priority] : ''}`}>{TASK_PRIORITY.find((o) => o.value === t.priority)?.label}</span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+export function BaseGridDemo() {
+  const [rows, setRows] = useState(TASKS);
+  const [columns, setColumns] = useState<GridColumn<Task>[]>(TASK_COLUMNS);
+  return (
+    <BaseGrid
+      columns={columns}
+      rows={rows}
+      getRowId={(t) => t.id}
+      noun="task"
+      maxHeight={420}
+      onRowChange={(next) => setRows((prev) => prev.map((r) => (r.id === next.id ? next : r)))}
+      onFieldAdd={(f) => setColumns((prev) => [...prev, columnFromField(f, TASK_EXTRA)])}
+      onFieldChange={(key, f) =>
+        setColumns((prev) =>
+          prev.map((c) => (c.key !== key ? c : c.type ? columnFromField(f, TASK_EXTRA) : { ...c, label: f.label, options: f.options })),
+        )
+      }
+      onFieldDelete={(key) => setColumns((prev) => prev.filter((c) => c.key !== key))}
+    />
+  );
+}
+
+/**
+ * The whole table, as a real app would mount it: rows, columns and history
+ * in state; views persisted in this browser under one key. Everything the
+ * table does is on — this is the component to copy.
+ */
+export function BaseTableDemo() {
+  const [rows, setRows] = useState(TASKS);
+  const [columns, setColumns] = useState<GridColumn<Task>[]>(TASK_COLUMNS);
+  const [history, setHistory] = useState<HistoryEntry[]>(TASK_HISTORY);
+  return (
+    <BaseTable
+      columns={columns}
+      rows={rows}
+      getRowId={(t) => t.id}
+      noun="task"
+      actor={DEMO_USER.name}
+      defaultViews={TASK_VIEWS}
+      storageKey="admin-ui-kit.base-table-demo"
+      maxHeight={460}
+      history={history}
+      onHistoryAdd={(h) => setHistory((prev) => [h, ...prev])}
+      onRowChange={(next) => setRows((prev) => prev.map((r) => (r.id === next.id ? next : r)))}
+      onFieldAdd={(f) => setColumns((prev) => [...prev, columnFromField(f, TASK_EXTRA)])}
+      onFieldChange={(key, f) =>
+        setColumns((prev) => prev.map((c) => (c.key !== key ? c : c.type ? columnFromField(f, TASK_EXTRA) : { ...c, label: f.label, options: f.options })))
+      }
+      onFieldDelete={(key) => setColumns((prev) => prev.filter((c) => c.key !== key))}
+    />
+  );
+}
+
+export function ViewTabsDemo() {
+  const [views, setViews] = useState<ViewTab[]>([
+    { id: 'a', name: 'All tasks', mode: 'grid' },
+    { id: 'b', name: 'My open work', mode: 'grid' },
+    { id: 'c', name: 'Status board', mode: 'board' },
+  ]);
+  const [active, setActive] = useState('a');
+  return (
+    <ViewTabs
+      views={views}
+      activeId={active}
+      onSelect={setActive}
+      onCreate={(mode) => {
+        const id = `n${views.length + 1}`;
+        setViews([...views, { id, name: mode === 'board' ? 'New board' : 'New grid', mode }]);
+        setActive(id);
+        return id;
+      }}
+      onRename={(id, name) => setViews(views.map((v) => (v.id === id ? { ...v, name } : v)))}
+      onDuplicate={(id) => {
+        const src = views.find((v) => v.id === id)!;
+        setViews([...views, { ...src, id: `d${views.length + 1}`, name: `${src.name} copy` }]);
+      }}
+      onDelete={(id) => {
+        const next = views.filter((v) => v.id !== id);
+        setViews(next);
+        if (active === id) setActive(next[0].id);
+      }}
+      onReorder={(ids) => setViews(ids.map((id) => views.find((v) => v.id === id)!))}
+    />
+  );
+}
+
+export function FieldEditorDemo() {
+  const [anchor, setAnchor] = useState<Anchor | null>(null);
+  const [saved, setSaved, echo] = useEcho<FieldDef | null>(null);
+  return (
+    <div>
+      <Button variant="secondary" onClick={(e) => setAnchor(anchorOf(e.currentTarget))}>Add field</Button>
+      <FieldEditor
+        open={anchor !== null}
+        anchor={anchor}
+        field={null}
+        existingKeys={TASK_COLUMNS.map((c) => c.key)}
+        onSave={(f) => { setSaved(f); setAnchor(null); }}
+        onClose={() => setAnchor(null)}
+      />
+      {saved && echo}
+    </div>
+  );
+}
+export function GroupBandRowDemo() {
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const toggle = (id: string) => setCollapsed((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const bands = [
+    { id: 'eng', label: 'Engineering', depth: 0, rows: TASKS.filter((t) => t.team === 'eng').slice(0, 3) },
+    { id: 'design', label: 'Design', depth: 0, rows: TASKS.filter((t) => t.team === 'design').slice(0, 2) },
+  ];
+  return (
+    <DemoTable head={<><th className="px-4">Task</th><th className="px-4">Owner</th><th className="px-4">Status</th></>}>
+      {bands.map((b) => (
+        <Fragment key={b.id}>
+          <GroupBandRow label={b.label} count={b.rows.length} depth={b.depth} collapsed={collapsed.has(b.id)} onToggle={() => toggle(b.id)} columnCount={3} noun="task" />
+          {!collapsed.has(b.id) && b.rows.map((t) => (
+            <tr key={t.id}>
+              <td className="px-4">{t.title}</td>
+              <td className="px-4">{t.owner}</td>
+              <td className="px-4"><OptionPills value={t.status} options={TASK_STATUS} /></td>
+            </tr>
+          ))}
+        </Fragment>
+      ))}
+    </DemoTable>
+  );
+}
+
+export function OptionPillDemo() {
+  const [tags, setTags] = useState(['bug', 'feature', 'customer']);
+  return (
+    <Row>
+      <Variant label="Stored tones">
+        <div className="flex flex-wrap gap-1">{TASK_STATUS.map((o) => <OptionPill key={o.value} label={o.label} tone={o.tone} />)}</div>
+      </Variant>
+      <Variant label="By position">
+        <OptionPills value={['bug', 'feature', 'docs', 'infra', 'customer']} options={TASK_TAGS} />
+      </Variant>
+      <Variant label="Chips">
+        <div className="flex flex-wrap gap-1">
+          {tags.map((v) => <OptionPill key={v} label={TASK_TAGS.find((o) => o.value === v)?.label ?? v} tone={['sky','amber','slate','emerald','zinc'][TASK_TAGS.findIndex((o) => o.value === v)]} onRemove={() => setTags(tags.filter((t) => t !== v))} />)}
+          {tags.length === 0 && <button type="button" className="btn-ghost text-xs" onClick={() => setTags(['bug', 'feature', 'customer'])}>Reset</button>}
+        </div>
+      </Variant>
+    </Row>
+  );
+}
+
+export function AnchoredPanelDemo() {
+  const [anchor, setAnchor] = useState<Anchor | null>(null);
+  const [inner, setInner] = useState<Anchor | null>(null);
+  const [label, setLabel] = useState('Status');
+  const [options, setOptions] = useState(TASK_STATUS.map((o) => o.label));
+  const [draft, setDraft] = useState('');
+  return (
+    <div>
+      <Button variant="secondary" onClick={(e) => setAnchor(anchorOf(e.currentTarget))}>Edit field</Button>
+
+      <AnchoredPanel
+        open={anchor !== null}
+        anchor={anchor}
+        onClose={() => { setAnchor(null); setInner(null); }}
+        title="Edit field"
+        subtitle="Status · single select"
+        footer={
+          <div className="flex justify-end gap-2">
+            <button type="button" className="btn-ghost text-xs" onClick={() => { setAnchor(null); setInner(null); }}>Cancel</button>
+            <button type="button" className="btn-primary" onClick={() => { setAnchor(null); setInner(null); }}>Save</button>
+          </div>
+        }
+      >
+        <div className="space-y-3 p-3">
+          <label className="block">
+            <span className="field-label">Label</span>
+            <input value={label} onChange={(e) => setLabel(e.target.value)} className="field-input" />
+          </label>
+          <div>
+            <span className="field-label">Options</span>
+            <div className="flex flex-wrap gap-1">{options.map((o, i) => <OptionPill key={o} label={o} tone={TASK_STATUS[i]?.tone} />)}</div>
+            {/* Anchored to the PANEL, not the button — see `closestPanelRect`. */}
+            <button type="button" className="btn-ghost mt-2 text-xs" onClick={(e) => setInner(closestPanelRect(e.currentTarget))}>
+              Manage options…
+            </button>
+          </div>
+        </div>
+      </AnchoredPanel>
+
+      <AnchoredPanel open={inner !== null} anchor={inner} onClose={() => setInner(null)} title="Options" subtitle={`${options.length} choices`} width={300}>
+        <div className="space-y-2 p-3">
+          <ul className="space-y-1">
+            {options.map((o) => (
+              <li key={o} className="flex items-center justify-between gap-2 rounded px-2 py-1 text-xs hover:bg-slate-50 dark:hover:bg-slate-800">
+                {o}
+                <button type="button" className="text-slate-400 hover:text-rose-600" onClick={() => setOptions(options.filter((x) => x !== o))} aria-label={`Remove ${o}`}>×</button>
+              </li>
+            ))}
+          </ul>
+          <form
+            className="flex gap-1.5"
+            onSubmit={(e) => { e.preventDefault(); if (draft.trim()) { setOptions([...options, draft.trim()]); setDraft(''); } }}
+          >
+            <input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="New option" className="field-input min-w-0 flex-1 py-1.5 text-xs" />
+            <button type="submit" className="btn-primary">Add</button>
+          </form>
+        </div>
+      </AnchoredPanel>
+    </div>
+  );
+}
+
+export * from './forms-b';
+
+export * from './overlay-e';
+
+export * from './data-d';
+
+export * from './layout-c';
+
+export * from './forms-a';
+
+export * from './table-f';
+
+export * from './layout-g';

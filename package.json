@@ -2,13 +2,15 @@
   "name": "admin-ui-kit",
   "version": "1.0.0",
   "private": false,
-  "description": "55 React components for admin and dashboard interfaces - Next.js 16, React 19, Tailwind 4.",
+  "description": "104 React components for admin and dashboard interfaces - Next.js 16, React 19, Tailwind 4.",
   "scripts": {
     "dev": "next dev -p 3020",
     "build": "next build",
     "start": "next start -p 3020",
     "typecheck": "tsc --noEmit",
-    "check:popovers": "node scripts/popover-check.mjs"
+    "check:registry": "node scripts/registry-check.mjs",
+    "check:popovers": "node scripts/popover-check.mjs",
+    "check": "npm run typecheck && npm run check:registry"
   },
   "dependencies": {
     "date-fns": "^4.4.0",
