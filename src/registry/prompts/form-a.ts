@@ -152,7 +152,7 @@ Chevrons are buttons labelled "Expand <label>" / "Collapse <label>"; the trigger
 ## Demo
 Region → Team → Person, placeholder "Region / Team / Person": Europe (Engineering: Ada Lovelace, Grace Hopper, Barbara Liskov; Research: Alan Turing, Katherine J., Edsger D.), Americas (Design: Alan Kay, Margaret H.), Asia-Pacific (Operations: no people, so a leaf). Echo the selected ids below.`,
 
-  'combined-filter-dropdown': `Build a combined multi-category filter dropdown (two-level flyout, batched Apply, selection chips beside the trigger) component in React + TypeScript + Tailwind CSS.
+  'combined-select': `Build a combined multi-category filter dropdown (two-level flyout, batched Apply, selection chips beside the trigger) component in React + TypeScript + Tailwind CSS.
 
 ## Look
 - Root \`flex items-center gap-2 min-w-0\`: the trigger, then the selection display on the same line.

@@ -1,0 +1,18 @@
+// Cloudflare Worker serving the gallery as static assets: `next build` writes
+// the whole site to `out/` (see `output: 'export'` in next.config.ts), and this
+// uploads it. No Worker script — requests are answered from the asset store.
+// Deploy with `npm run deploy`.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "admin-ui-kit",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./out",
+    // /preview/button is served from preview/button.html, and an unknown path
+    // gets Next's own 404 page with a real 404 status.
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  },
+  // Creates the DNS record and certificate on the hasibcodes.com zone itself.
+  "routes": [{ "pattern": "uikit.hasibcodes.com", "custom_domain": true }]
+}

@@ -31,7 +31,7 @@ import Tooltip, { InfoTooltip } from '@/components/overlay/Tooltip';
 
 import { AutocompleteDropdown } from '@/components/form/AutocompleteDropdown';
 import Checkbox from '@/components/form/Checkbox';
-import { CombinedFilterDropdown, type FilterValue } from '@/components/form/CombinedFilterDropdown';
+import { CombinedSelect, type FilterValue } from '@/components/form/CombinedSelect';
 import { DatePicker } from '@/components/form/DatePicker';
 import DateRangePicker from '@/components/form/DateRangePicker';
 import Field, { Input, Select, Textarea } from '@/components/form/Field';
@@ -360,11 +360,11 @@ export function TreeMultiSelectDropdownDemo() {
   );
 }
 
-export function CombinedFilterDropdownDemo() {
+export function CombinedSelectDemo() {
   const [value, setValue, echo] = useEcho<FilterValue>({ region: [1], team: [1, 2] });
   return (
     <>
-      <CombinedFilterDropdown
+      <CombinedSelect
         groups={[
           { key: 'region', label: 'Region', options: REGIONS.map((r) => ({ id: r.id, label: r.name })) },
           { key: 'team', label: 'Team', options: TEAMS.map((t) => ({ id: t.id, label: t.name, parentId: t.regionId })) },

@@ -92,7 +92,7 @@ export const ENTRIES: Entry[] = [
   form('MultiSelect', 'Searchable multi-select with removable chips; disabled options stay visible.'),
   form('AutocompleteDropdown', 'Single-select with type-ahead and optional option grouping.'),
   form('TreeMultiSelectDropdown', 'Multi-select over a nested tree; ticking a parent selects its subtree.'),
-  form('CombinedFilterDropdown', 'Multi-group filter in one popover: parent-child narrowing, a measured chip row, or a fixed-height summary.'),
+  form('CombinedSelect', 'Multi-group filter in one popover: parent-child narrowing, a measured chip row, or a fixed-height summary.'),
   form('DatePicker', 'Single-date calendar with a per-date disable predicate.'),
   form('DateRangePicker', 'Two-month range calendar with quick options. Controlled on ISO day strings.'),
   form('MonthPicker', 'Single-month select on `YYYY-MM` strings, clearable.'),

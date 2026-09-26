@@ -38,11 +38,13 @@ export const MENU_GROUPS: MenuGroup[] = [
   group('Feedback', ['Alert', 'EmptyState', 'Progress', 'Skeleton'], { Alert: 'fill', EmptyState: 'fill', Progress: 'fill', Skeleton: 'fill' }),
   group('Text inputs', ['Field', 'InputGroup', 'IconField', 'FloatLabel', 'IftaLabel', 'InputMask', 'InputPassword', 'InputColor'], 'field'),
   group('Choices', ['Checkbox', 'RadioGroup', 'ToggleSwitch', 'Slider', 'Knob']),
-  group('Selects & pickers', ['MultiSelect', 'AutocompleteDropdown', 'CascadeSelect', 'TreeMultiSelectDropdown', 'PickList'], 'field'),
+  // CombinedSelect fills: its chip row is measured against the width it is
+  // given, and a field-width box leaves room for one chip and a "+N more".
+  group('Selects & pickers', ['MultiSelect', 'CombinedSelect', 'AutocompleteDropdown', 'CascadeSelect', 'TreeMultiSelectDropdown', 'PickList'], { '*': 'field', CombinedSelect: 'fill' }),
   // DateRangePicker fills: its 800px calendar hangs off the trigger's RIGHT
   // edge, so from a centred field it reaches back over the sidebar.
   group('Dates', ['DatePicker', 'DateRangePicker', 'MonthPicker', 'MonthRangePicker', 'DayGrid', 'MonthGrid'], { '*': 'field', DateRangePicker: 'fill' }),
-  group('Filters & views', ['CombinedFilterDropdown', 'MultilevelMenu', 'FilterPanel', 'ConditionGroupsBuilder', 'SortPanel', 'GroupPanel', 'FieldsPanel', 'FieldEditor', 'ColorRulesPanel', 'ViewTabs'], 'fill'),
+  group('Filters & views', ['MultilevelMenu', 'FilterPanel', 'ConditionGroupsBuilder', 'SortPanel', 'GroupPanel', 'FieldsPanel', 'FieldEditor', 'ColorRulesPanel', 'ViewTabs'], 'fill'),
   group('Tables', ['DataTable', 'BaseTable', 'BaseGrid', 'PivotTable', 'PasteableGrid'], 'fill'),
   group('Table parts', ['Pagination', 'EditableCell', 'AccountCell', 'GroupBandRow', 'SaveAllBar'], 'fill'),
   group('Lists & trees', ['SortableList', 'Tree', 'OrganizationChart'], { SortableList: 'field' }),
@@ -79,7 +81,7 @@ const TILE_SIZES: Partial<Record<string, TileSize>> = {
   TrendChart: 3, Heatmap: 3, OrganizationChart: 3, MediaLibrary: 3, Gallery: 3,
   // Charts, panels and strips that need a card's width to be recognisable.
   Topbar: 2, Sidebar: 2, FilterPanel: 2, NavMenu: 2, Tabs: 2, Card: 2, Splitter: 2, Accordion: 2, Fieldset: 2, Alert: 2, EmptyState: 2,
-  PickList: 2, CombinedFilterDropdown: 2, MultilevelMenu: 2, ViewTabs: 2,
+  PickList: 2, CombinedSelect: 2, MultilevelMenu: 2, ViewTabs: 2,
   Pagination: 2, GroupBandRow: 2, SaveAllBar: 2, Tree: 2, Carousel: 2,
   ChartCard: 2, BarChart: 2, LineChart: 2, AreaChart: 2, DonutChart: 2, ScatterChart: 2,
   FunnelChart: 2, DivergingBars: 2, RetentionChart: 2, RankedBars: 2,

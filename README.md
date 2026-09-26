@@ -3,12 +3,15 @@
 104 React components for admin and dashboard interfaces, with a live gallery.
 **Next.js 16 · React 19 · Tailwind 4 · TypeScript · MIT.**
 
+**Live preview: [uikit.hasibcodes.com](https://uikit.hasibcodes.com)** — every
+component running, with its code, an AI prompt to rebuild it, and its props.
+
 Copy-in, not install: every component is a single self-contained file you paste
 into your own `components/` folder. No build step to adopt, no version to keep in
 sync, nothing to eject from later.
 
 ```bash
-git clone <this-repo> admin-ui-kit
+git clone https://github.com/haassiib/admin-ui-kit.git
 cd admin-ui-kit
 npm install
 npm run dev            # gallery at http://localhost:3020
@@ -18,22 +21,27 @@ npm run dev            # gallery at http://localhost:3020
 
 | Route | |
 |---|---|
-| `/` | All 104 components on one page, with search and filters |
+| `/` | All 104 components as a grid of live thumbnails, 1x–4x tiles by how much room each needs; the arrow on a tile opens its page |
 | `/preview/<slug>` | One component's documentation page |
+
+The header search filters the sidebar's component list.
 
 (`/all` redirects to `/` — it was the listing's address before the overview page
 was removed.)
 
 Each component page is laid out like a docs site:
 
-- **Import** — the exact import line, with a copy button
-- **Examples** — at most three per component, each with a heading, a sentence on
-  what it shows, the live thing, and a *Show code* toggle over its own source.
-  Variants that differ by one prop are folded into a single example with a
-  control, rather than repeated as near-identical screenshots
+- **Preview** — at most three examples per component, each with a heading, a
+  sentence on what it shows, the live thing, a *Show code* toggle over its own
+  source, and one-click copy for the code and the AI prompt. Variants that differ
+  by one prop are folded into a single example with a control, rather than
+  repeated as near-identical screenshots
+- **Code** — the exact import line, with a copy button
+- **AI prompt** — a description of the design complete enough to paste into an
+  AI coding tool and rebuild the component in your own stack
+- **Source** — the whole file
 - **Props** — name, type, default and description, **parsed from the component's
   own types at build time**, so the table cannot drift from the code
-- **Source** — the whole file
 - **On this page** — a right-hand nav that tracks the section you are reading
 
 `DataTable`, for instance, has three: Basic, Every feature, and Loading/empty.
@@ -48,7 +56,7 @@ SplitButton
 
 **Form & input** (32) — Field (+ Input, Textarea, Select) · Checkbox · ToggleSwitch ·
 PickList · MultiSelect · AutocompleteDropdown · TreeMultiSelectDropdown ·
-CombinedFilterDropdown · DatePicker · DateRangePicker · MonthPicker ·
+CombinedSelect · DatePicker · DateRangePicker · MonthPicker ·
 MonthRangePicker · MonthGrid · DayGrid · FilterPanel · ConditionGroupsBuilder ·
 GroupPanel · SortPanel · ColorRulesPanel · FieldsPanel · FieldEditor · Slider ·
 RadioGroup · Knob · InputGroup · IconField · InputMask · InputPassword · InputColor ·

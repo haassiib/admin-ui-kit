@@ -45,7 +45,7 @@ import OptionPill, { optionTone } from '@/components/data/OptionPill';
  * A condition is built left to right: picking the field alone would refilter
  * the list, then the operator again, then each keystroke of the value again.
  * So the panel edits a local draft and commits on Apply — the same bargain
- * `CombinedFilterDropdown` makes. A half-built row is kept on screen and
+ * `CombinedSelect` makes. A half-built row is kept on screen and
  * simply not applied: `conditionsMatch` skips any valued operator with an
  * empty value, so choosing a field and pausing to think does not narrow the
  * list under you.

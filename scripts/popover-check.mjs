@@ -33,7 +33,7 @@ const CASES = [
   ['data-table', 'click', 'button[aria-label="Columns"]'],
   ['multi-select', 'click'],
   ['autocomplete-dropdown', 'click'],
-  ['combined-filter-dropdown', 'click'],
+  ['combined-select', 'click'],
   ['date-range-picker', 'click'],
   ['date-picker', 'click'],
   ['month-picker', 'click'],

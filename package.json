@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "check:registry": "node scripts/registry-check.mjs",
     "check:popovers": "node scripts/popover-check.mjs",
-    "check": "npm run typecheck && npm run check:registry"
+    "check": "npm run typecheck && npm run check:registry",
+    "deploy": "next build && wrangler deploy"
   },
   "dependencies": {
     "date-fns": "^4.4.0",
@@ -30,7 +31,8 @@
     "postcss": "^8.5.26",
     "puppeteer-core": "^24.0.0",
     "tailwindcss": "^4.3.3",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "wrangler": "^4.141.0"
   },
   "license": "MIT",
   "keywords": [

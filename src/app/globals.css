@@ -171,7 +171,7 @@ body {
              <body> and must clear a Drawer's own backdrop.
 
    Popovers used to be scattered across 10, 20, 30 and 50, which put DatePicker
-   level with a sticky `<th>` and CombinedFilterDropdown level with a frozen
+   level with a sticky `<th>` and CombinedSelect level with a frozen
    header cell. On a tie the later element in the document wins, so a menu opened
    above a table disappeared behind its header. One band for all of them removes
    the whole category.

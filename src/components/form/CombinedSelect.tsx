@@ -3,7 +3,7 @@
 /* Origin: bonus-adjustment (96S2), verbatim. */
 
 /**
- * CombinedFilterDropdown
+ * CombinedSelect
  * ------------------------------------------------------------------
  * Generic, config-driven "combined filter" control: a single trigger button
  * opens one dropdown panel containing any number of multi-select filter
@@ -48,7 +48,7 @@
  *
  *   const [value, setValue] = useState<FilterValue>({ platform: [], brands: [] });
  *
- *   <CombinedFilterDropdown
+ *   <CombinedSelect
  *     groups={[
  *       { key: 'platform', label: 'Platform', options: [{ id: 'fb', label: 'Facebook' }, { id: 'tt', label: 'TikTok' }] },
  *       { key: 'brands', label: 'Brands', options: brands.map(b => ({ id: b.id, label: b.name })) },
@@ -123,7 +123,7 @@ export interface FilterGroup {
 /** Selected option ids per group key, e.g. `{ platform: ['fb'], brands: [1, 2] }`. */
 export type FilterValue = Record<string, Array<string | number>>;
 
-interface CombinedFilterDropdownProps {
+interface CombinedSelectProps {
   groups: FilterGroup[];
   value: FilterValue;
   /** Called with the full next-selection array for a single group whenever it changes. */
@@ -171,7 +171,7 @@ function sameSelection(a: Array<string | number> = [], b: Array<string | number>
 const noop = () => {};
 
 
-export function CombinedFilterDropdown({
+export function CombinedSelect({
   groups,
   value,
   onChange,
@@ -180,7 +180,7 @@ export function CombinedFilterDropdown({
   searchThreshold = 8,
   selectionDisplay = 'chips',
   onClearEverything,
-}: CombinedFilterDropdownProps) {
+}: CombinedSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   // Which category's level-2 flyout (search + toggleable item list) is currently open,
   // if any. Reset to null whenever the whole panel closes, so reopening the

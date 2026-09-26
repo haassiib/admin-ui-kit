@@ -25,7 +25,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Tooltip, { InfoTooltip } from '@/components/overlay/Tooltip';
 import Progress from '@/components/data/Progress';
 import DataTable, { type Column } from '@/components/table/DataTable';
-import { CombinedFilterDropdown, type FilterValue } from '@/components/form/CombinedFilterDropdown';
+import { CombinedSelect, type FilterValue } from '@/components/form/CombinedSelect';
 import Drawer from '@/components/overlay/Drawer';
 import Card from '@/components/layout/Card';
 import BaseGrid, { columnFromField, type GridColumn, type GridView } from '@/components/table/BaseGrid';
@@ -156,7 +156,7 @@ function NavMenuFiltering() {
   );
 }
 
-/* ------------------------------------------ CombinedFilterDropdown --- */
+/* ------------------------------------------ CombinedSelect --- */
 
 const REGIONS = [
   { id: 1, name: 'Europe' },
@@ -192,19 +192,19 @@ function useSeededFilter(initial: FilterValue) {
   };
 }
 
-function CombinedFilterDropdownChips() {
+function CombinedSelectChips() {
   const bound = useSeededFilter({ region: [1], team: [1, 2] });
-  return <CombinedFilterDropdown {...bound} onClearEverything={() => bound.onChange('region', [])} />;
+  return <CombinedSelect {...bound} onClearEverything={() => bound.onChange('region', [])} />;
 }
 
-function CombinedFilterDropdownSummary() {
+function CombinedSelectSummary() {
   const bound = useSeededFilter({ region: [1], team: [1, 2] });
-  return <CombinedFilterDropdown {...bound} selectionDisplay="summary" />;
+  return <CombinedSelect {...bound} selectionDisplay="summary" />;
 }
 
-function CombinedFilterDropdownEmpty() {
+function CombinedSelectEmpty() {
   const bound = useSeededFilter({ region: [], team: [] });
-  return <CombinedFilterDropdown {...bound} />;
+  return <CombinedSelect {...bound} />;
 }
 
 /* --------------------------------------------------------------- Drawer --- */
@@ -1089,7 +1089,7 @@ export const EXAMPLE_DEMOS: Record<string, Record<string, React.ComponentType>> 
   'base-grid': { 'basic': BaseGridBasic, 'preset': BaseGridPreset, 'record': BaseGridRecord },
   'anchored-panel': { 'nested': AnchoredPanelNested, 'placement': AnchoredPanelPlacement },
   'drawer': { 'basic': DrawerBasic, 'anchored': DrawerAnchored, 'options': DrawerOptions },
-  'combined-filter-dropdown': { 'chips': CombinedFilterDropdownChips, 'summary': CombinedFilterDropdownSummary, 'empty': CombinedFilterDropdownEmpty },
+  'combined-select': { 'chips': CombinedSelectChips, 'summary': CombinedSelectSummary, 'empty': CombinedSelectEmpty },
   'nav-menu': { 'vertical': NavMenuVertical, 'horizontal': NavMenuHorizontal, 'filtering': NavMenuFiltering },
   'splitter': { 'basic': SplitterBasic, 'sizing': SplitterSizing, 'nested': SplitterNested },
   'button': { 'variants': ButtonVariants, 'sizes': ButtonSizes, 'loading': ButtonLoading },

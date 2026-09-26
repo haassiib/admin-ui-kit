@@ -13,7 +13,7 @@
  *
  * It is ANCHORED on the exported component's own declaration. Several files here
  * define private sub-components above the one they export — `Chip` above
- * `CombinedFilterDropdown`, `Row` above `Sidebar`, `Delta` above `KpiTile` — and
+ * `CombinedSelect`, `Row` above `Sidebar`, `Delta` above `KpiTile` — and
  * simply taking the first object type in the file documented the wrong
  * component, convincingly and silently.
  */

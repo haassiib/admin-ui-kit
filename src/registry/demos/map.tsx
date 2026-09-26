@@ -28,7 +28,7 @@ export const DEMOS: Record<string, React.ComponentType> = {
   'multi-select': D.MultiSelectDemo,
   'autocomplete-dropdown': D.AutocompleteDropdownDemo,
   'tree-multi-select-dropdown': D.TreeMultiSelectDropdownDemo,
-  'combined-filter-dropdown': D.CombinedFilterDropdownDemo,
+  'combined-select': D.CombinedSelectDemo,
   'date-picker': D.DatePickerDemo,
   'date-range-picker': D.DateRangePickerDemo,
   'month-picker': D.MonthPickerDemo,

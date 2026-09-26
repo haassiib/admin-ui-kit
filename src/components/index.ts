@@ -43,8 +43,8 @@ export type { TooltipPlacement, TooltipVariant } from './overlay/Tooltip';
 // form
 export { default as Checkbox } from './form/Checkbox';
 export { AutocompleteDropdown } from './form/AutocompleteDropdown';
-export { CombinedFilterDropdown } from './form/CombinedFilterDropdown';
-export type { FilterGroup, FilterOption, FilterValue } from './form/CombinedFilterDropdown';
+export { CombinedSelect } from './form/CombinedSelect';
+export type { FilterGroup, FilterOption, FilterValue } from './form/CombinedSelect';
 export { default as DatePicker } from './form/DatePicker';
 export { default as DateRangePicker } from './form/DateRangePicker';
 export type { IsoDayRange } from './form/DateRangePicker';
